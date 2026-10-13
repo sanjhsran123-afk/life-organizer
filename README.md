@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # DayLedger — Personal Productivity & Financial Suite
 
 DayLedger is an elegant, unified personal productivity application that combines task management, lent and borrowed financial tracking, contacts, notes, and activity timeline.
@@ -166,3 +167,7 @@ Open **`http://localhost:5173/`** in your browser.
    - Collection **`authactivities`**:
      - View chronological security events: `eventType` (`SIGNUP`, `LOGIN`, `LOGOUT`, `ROLE_CHANGED`), `userEmail`, `userName`, `ipAddress`, `userAgent`, `details`, and `timestamp`.
 
+=======
+# life-organizer
+Made by - Iksanjh inder
+>>>>>>> 002b610752d9580be686a7f5c35ba2b5d73809d6
