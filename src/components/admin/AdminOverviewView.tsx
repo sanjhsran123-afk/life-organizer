@@ -105,21 +105,21 @@ export const AdminOverviewView: React.FC<AdminOverviewViewProps> = ({
             </p>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="grid grid-cols-2 sm:flex items-center gap-2.5 w-full sm:w-auto shrink-0">
             <button
               onClick={onRefresh}
               disabled={isLoading}
-              className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold backdrop-blur-xs transition-colors flex items-center gap-1.5 cursor-pointer border border-white/10"
+              className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold backdrop-blur-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer border border-white/10"
               title="Refresh administrative metrics"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
-              <span>Refresh Metrics</span>
+              <span>Refresh</span>
             </button>
             <button
               onClick={() => onNavigateTab('users')}
-              className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
             >
-              <span>Manage Users</span>
+              <span>Users</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>

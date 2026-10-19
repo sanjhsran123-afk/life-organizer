@@ -61,14 +61,14 @@ export const StatCards: React.FC = () => {
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
       {cards.map((card) => {
         const Icon = card.icon;
         return (
           <div
             key={card.id}
             onClick={() => setActiveTab(card.tab)}
-            className="p-4 bg-white rounded-2xl border border-zinc-200/70 shadow-xs hover:border-zinc-300 hover:shadow-card transition-all duration-150 cursor-pointer group"
+            className="p-3.5 sm:p-4 bg-white rounded-2xl border border-zinc-200/70 shadow-xs hover:border-zinc-300 hover:shadow-card transition-all duration-150 cursor-pointer group"
           >
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">

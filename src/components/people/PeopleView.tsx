@@ -74,6 +74,7 @@ export const PeopleView: React.FC = () => {
           variant="primary"
           icon={<UserPlus className="w-4 h-4" />}
           onClick={() => openPersonModal()}
+          className="w-full sm:w-auto"
         >
           Add Contact
         </Button>
@@ -124,13 +125,13 @@ export const PeopleView: React.FC = () => {
         </div>
 
         <div className="relative">
-          <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-2.5" />
+          <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-3 sm:top-2.5" />
           <input
             type="text"
             placeholder="Search by name, contact info, or notes..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-white border border-zinc-200/90 rounded-xl text-xs pl-9 pr-3 py-2 text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10"
+            className="w-full bg-white border border-zinc-200/90 rounded-xl text-base sm:text-xs pl-9 pr-3 py-2.5 sm:py-2 min-h-[42px] sm:min-h-0 text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10"
           />
         </div>
       </div>

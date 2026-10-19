@@ -278,7 +278,6 @@ export const TransactionModal: React.FC = () => {
                 onChange={(e) => setPersonName(e.target.value)}
                 error={errors.personName}
                 required
-                autoFocus
               />
             </div>
           )}

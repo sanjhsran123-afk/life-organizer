@@ -219,9 +219,56 @@ export const AdminPanel: React.FC = () => {
     secondsAgo <= 1 ? 'Just now' : `${secondsAgo}s ago`;
 
   return (
-    <div className="flex flex-col md:flex-row gap-6 min-h-[calc(100vh-10rem)] animate-fade-in">
-      {/* Admin Left Navigation Sidebar */}
-      <aside className="w-full md:w-60 shrink-0 bg-white rounded-2xl border border-zinc-200/80 p-3 shadow-2xs flex flex-col justify-between">
+    <div className="flex flex-col md:flex-row gap-4 sm:gap-6 min-h-[calc(100vh-10rem)] animate-fade-in">
+      {/* Mobile Sub-Navigation Tabs */}
+      <div className="md:hidden flex items-center gap-1.5 overflow-x-auto p-1.5 bg-white rounded-2xl border border-zinc-200/80 shadow-2xs scrollbar-none">
+        <button
+          onClick={() => setCurrentSubTab('overview')}
+          className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold shrink-0 transition-all cursor-pointer ${
+            currentSubTab === 'overview'
+              ? 'bg-indigo-50 text-indigo-700 shadow-2xs'
+              : 'text-zinc-600 hover:text-zinc-900'
+          }`}
+        >
+          <LayoutDashboard className="w-4 h-4 shrink-0" />
+          <span>Overview</span>
+        </button>
+
+        <button
+          onClick={() => setCurrentSubTab('users')}
+          className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold shrink-0 transition-all cursor-pointer ${
+            currentSubTab === 'users'
+              ? 'bg-indigo-50 text-indigo-700 shadow-2xs'
+              : 'text-zinc-600 hover:text-zinc-900'
+          }`}
+        >
+          <Users className="w-4 h-4 shrink-0" />
+          <span>Users</span>
+        </button>
+
+        <button
+          onClick={() => setCurrentSubTab('activity')}
+          className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold shrink-0 transition-all cursor-pointer ${
+            currentSubTab === 'activity'
+              ? 'bg-indigo-50 text-indigo-700 shadow-2xs'
+              : 'text-zinc-600 hover:text-zinc-900'
+          }`}
+        >
+          <Activity className="w-4 h-4 shrink-0" />
+          <span>Security Logs</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('overview')}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-zinc-500 hover:text-zinc-800 shrink-0 ml-auto cursor-pointer"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Exit</span>
+        </button>
+      </div>
+
+      {/* Desktop Admin Left Navigation Sidebar */}
+      <aside className="hidden md:flex w-60 shrink-0 bg-white rounded-2xl border border-zinc-200/80 p-3 shadow-2xs flex-col justify-between">
         <div className="space-y-1">
           {/* Admin Header Tag */}
           <div className="px-3 py-3 border-b border-zinc-100 mb-2 flex items-center gap-2.5">

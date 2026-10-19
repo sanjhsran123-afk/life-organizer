@@ -136,7 +136,7 @@ export const AdminActivityView: React.FC<AdminActivityViewProps> = ({
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-white p-3.5 rounded-2xl border border-zinc-200/80 shadow-2xs flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
+      <div className="bg-white p-3.5 rounded-2xl border border-zinc-200/80 shadow-2xs flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
         {/* Search Input */}
         <div className="relative flex-1">
           <Search className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -145,17 +145,17 @@ export const AdminActivityView: React.FC<AdminActivityViewProps> = ({
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Search by user email, name, or event details..."
-            className="w-full pl-10 pr-4 py-2 text-xs bg-zinc-50 border border-zinc-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-zinc-900 placeholder:text-zinc-600"
+            className="w-full pl-10 pr-4 py-2.5 sm:py-2 text-base sm:text-xs bg-zinc-50 border border-zinc-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-zinc-900 placeholder:text-zinc-600 min-h-[42px] sm:min-h-0"
           />
         </div>
 
         {/* Filter by Event Type */}
-        <div className="flex items-center gap-1.5 bg-zinc-50 border border-zinc-200 px-3 py-1.5 rounded-xl text-xs text-zinc-700">
+        <div className="flex items-center gap-1.5 bg-zinc-50 border border-zinc-200 px-3 py-2 sm:py-1.5 rounded-xl text-xs text-zinc-700 min-h-[42px] sm:min-h-0">
           <Filter className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
           <select
             value={eventTypeFilter}
             onChange={(e) => onFilterChange(e.target.value)}
-            className="bg-transparent border-none text-xs font-medium text-zinc-800 focus:outline-hidden cursor-pointer"
+            className="bg-transparent border-none text-base sm:text-xs font-medium text-zinc-800 focus:outline-hidden cursor-pointer w-full"
           >
             <option value="all">All Events</option>
             <option value="SIGNUP">Sign-ups Only</option>
@@ -220,7 +220,7 @@ export const AdminActivityView: React.FC<AdminActivityViewProps> = ({
                     <p className="text-xs text-zinc-600 mt-0.5 truncate">
                       {act.details || `Event ${act.eventType} completed`}
                     </p>
-                    <div className="flex items-center gap-2 text-[10px] text-zinc-600 font-mono mt-1">
+                    <div className="flex flex-wrap items-center gap-2 text-[10px] text-zinc-600 font-mono mt-1">
                       <span>IP: {act.ipAddress}</span>
                       <span>•</span>
                       <span className="truncate max-w-xs">{act.userAgent}</span>

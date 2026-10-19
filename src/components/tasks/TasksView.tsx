@@ -143,6 +143,7 @@ export const TasksView: React.FC = () => {
           variant="primary"
           icon={<Plus className="w-4 h-4" />}
           onClick={() => openTaskModal()}
+          className="w-full sm:w-auto"
         >
           Add New Task
         </Button>
@@ -220,20 +221,20 @@ export const TasksView: React.FC = () => {
       {/* Search & Filter Bar */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
         <div className="sm:col-span-2 relative">
-          <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-2.5" />
+          <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-3 sm:top-2.5" />
           <input
             type="text"
             placeholder="Search tasks by name or description..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-white border border-zinc-200/90 rounded-xl text-xs pl-9 pr-3 py-2 text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10"
+            className="w-full bg-white border border-zinc-200/90 rounded-xl text-base sm:text-xs pl-9 pr-3 py-2.5 sm:py-2 min-h-[42px] sm:min-h-0 text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10"
           />
         </div>
 
         <select
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
-          className="bg-white border border-zinc-200/90 rounded-xl text-xs px-3 py-2 text-zinc-700 focus:outline-none focus:border-indigo-500 cursor-pointer"
+          className="bg-white border border-zinc-200/90 rounded-xl text-base sm:text-xs px-3 py-2.5 sm:py-2 min-h-[42px] sm:min-h-0 text-zinc-700 focus:outline-none focus:border-indigo-500 cursor-pointer"
         >
           <option value="all">All Categories</option>
           <option value="College">College</option>
@@ -247,7 +248,7 @@ export const TasksView: React.FC = () => {
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value as any)}
-          className="bg-white border border-zinc-200/90 rounded-xl text-xs px-3 py-2 text-zinc-700 focus:outline-none focus:border-indigo-500 cursor-pointer"
+          className="bg-white border border-zinc-200/90 rounded-xl text-base sm:text-xs px-3 py-2.5 sm:py-2 min-h-[42px] sm:min-h-0 text-zinc-700 focus:outline-none focus:border-indigo-500 cursor-pointer"
         >
           <option value="dueDate">Sort by: Due Date</option>
           <option value="priority">Sort by: Priority</option>
@@ -371,7 +372,7 @@ export const TasksView: React.FC = () => {
                 >
                   <div className="flex items-center gap-2">
                     <span
-                      className={`text-xs font-semibold truncate ${
+                      className={`text-xs sm:text-sm font-semibold truncate ${
                         isDone ? 'line-through text-zinc-400' : 'text-zinc-900'
                       }`}
                     >
@@ -393,9 +394,24 @@ export const TasksView: React.FC = () => {
                   {task.description && (
                     <p className="text-[11px] text-zinc-500 truncate mt-0.5">{task.description}</p>
                   )}
+
+                  {/* Category & Due Date shown on phone screens */}
+                  <div className="flex sm:hidden items-center gap-2 mt-1 text-[11px]">
+                    <Badge size="xs" variant="neutral">
+                      {task.category}
+                    </Badge>
+                    <span
+                      className={`font-medium flex items-center gap-1 ${
+                        overdue ? 'text-rose-600 font-semibold' : 'text-zinc-500'
+                      }`}
+                    >
+                      <Calendar className="w-3 h-3 text-zinc-400" />
+                      {formatRelativeDate(task.dueDate)}
+                    </span>
+                  </div>
                 </div>
 
-                {/* Category & Due Date */}
+                {/* Category & Due Date shown on tablet / desktop */}
                 <div className="hidden sm:flex items-center gap-3 shrink-0 text-xs">
                   <Badge size="xs" variant="neutral">
                     {task.category}
@@ -411,19 +427,21 @@ export const TasksView: React.FC = () => {
                   </span>
                 </div>
 
-                {/* Row actions */}
-                <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                {/* Row actions: visible by default on mobile touchscreens, hover on desktop */}
+                <div className="flex items-center gap-1 shrink-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                   <button
                     onClick={() => openTaskModal(task)}
-                    className="p-1.5 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 rounded-lg"
+                    className="p-2 sm:p-1.5 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 rounded-lg cursor-pointer"
                     title="Edit task"
+                    aria-label="Edit task"
                   >
                     <Edit2 className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={() => setTaskToDelete(task)}
-                    className="p-1.5 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg"
+                    className="p-2 sm:p-1.5 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg cursor-pointer"
                     title="Delete task"
+                    aria-label="Delete task"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>

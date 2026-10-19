@@ -23,10 +23,10 @@ export const Button: React.FC<ButtonProps> = ({
     'inline-flex items-center justify-center font-medium rounded-xl transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 select-none disabled:opacity-50 disabled:pointer-events-none cursor-pointer';
 
   const sizeStyles = {
-    xs: 'text-xs px-2.5 py-1 gap-1.5',
-    sm: 'text-xs px-3 py-1.5 gap-1.5 font-medium',
-    md: 'text-sm px-3.5 py-2 gap-2',
-    lg: 'text-base px-4.5 py-2.5 gap-2.5',
+    xs: 'text-xs px-2.5 py-1 min-h-[32px] sm:min-h-0 gap-1.5',
+    sm: 'text-xs px-3 py-1.5 min-h-[38px] sm:min-h-[34px] gap-1.5 font-medium',
+    md: 'text-sm px-3.5 py-2 min-h-[42px] sm:min-h-[38px] gap-2',
+    lg: 'text-base px-4.5 py-2.5 min-h-[46px] gap-2.5',
   };
 
   const variantStyles = {

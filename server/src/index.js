@@ -1,28 +1,108 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import mongoose from 'mongoose';
 import { connectDB } from './config/db.js';
 import apiRoutes from './routes/api.js';
 import authRoutes from './routes/auth.js';
 import adminRoutes from './routes/admin.js';
 import { authMiddleware } from './middleware/auth.js';
 
-// Support both root .env and ./server/.env
+// Support both root .env and ./server/.env for local development
 dotenv.config();
 if (!process.env.MONGODB_URI) {
   dotenv.config({ path: './server/.env' });
 }
 
 const app = express();
+// Render automatically provides PORT via environment variable
 const PORT = process.env.PORT || 5000;
 
-app.use(cors());
+const isProduction = process.env.NODE_ENV === 'production';
+
+// Parse configured origins from CLIENT_URL, ALLOWED_ORIGINS, or APP_ORIGINS (comma-separated)
+const parseOrigins = (val) =>
+  (val || '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+const configuredWebOrigins = parseOrigins(process.env.CLIENT_URL || process.env.CORS_ORIGIN);
+const configuredAppOrigins = parseOrigins(process.env.APP_ORIGINS || process.env.ALLOWED_ORIGINS);
+
+// Standard local development origins
+const devOrigins = [
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'http://localhost:3000',
+  'http://localhost:5000',
+  'http://127.0.0.1:5000',
+];
+
+// Standard hybrid mobile app webview origins (Capacitor / Cordova for Android and iOS builds)
+const mobileAppOrigins = [
+  'capacitor://localhost',
+  'ionic://localhost',
+  'http://localhost', // Android WebView default origin
+  ...configuredAppOrigins,
+];
+
+// Production origins allowlist: explicit origins only (wildcard '*' is forbidden in production)
+const productionAllowedOrigins = new Set([
+  ...configuredWebOrigins.filter((origin) => origin !== '*'),
+  ...mobileAppOrigins,
+]);
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // 1. Allow requests with no Origin header (native mobile apps, curl, uptime pingers, server-to-server)
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      // 2. In local development, permit localhost and local network testing
+      if (!isProduction) {
+        if (
+          devOrigins.includes(origin) ||
+          origin.startsWith('http://localhost:') ||
+          origin.startsWith('http://127.0.0.1:') ||
+          mobileAppOrigins.includes(origin) ||
+          configuredWebOrigins.includes(origin)
+        ) {
+          return callback(null, true);
+        }
+      }
+
+      // 3. In production, check explicitly allowed web and app origins
+      if (productionAllowedOrigins.has(origin)) {
+        return callback(null, true);
+      }
+
+      // Reject all unauthorized origins
+      console.warn(`[CORS Blocked] Request rejected from origin: ${origin}`);
+      return callback(new Error(`CORS policy does not allow access from origin: ${origin}`));
+    },
+    credentials: true,
+  })
+);
+
 app.use(express.json());
 
-// Request logger for debugging
+// Request logger for debugging (masks sensitive endpoints/bodies)
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   next();
+});
+
+// Simple Health Check URL for Render monitoring and uptime checks
+app.get(['/health', '/api/health'], (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    uptime: Math.floor(process.uptime()),
+    timestamp: new Date().toISOString(),
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+  });
 });
 
 // Authentication middleware to populate req.userId & req.user from JWT
@@ -33,20 +113,31 @@ app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api', apiRoutes);
 
-// Root route
+// Root informational route (sanitized to NEVER leak credentials or secrets)
 app.get('/', (req, res) => {
+  const isAtlas = Boolean(process.env.MONGODB_URI && process.env.MONGODB_URI.includes('mongodb+srv'));
   res.json({
     name: 'DayLedger API',
     status: 'Running',
     version: '1.1.0',
     authEnabled: true,
-    database: process.env.MONGODB_URI || 'mongodb://localhost:27017/dayledger',
+    database: mongoose.connection.readyState === 1
+      ? 'Connected'
+      : process.env.MONGODB_URI
+      ? (isAtlas ? 'MongoDB Atlas (Configured)' : 'Configured (Awaiting Connection)')
+      : 'Local Default',
   });
 });
 
-// Start Express server immediately, then connect to MongoDB
-app.listen(PORT, () => {
-  console.log(`🚀 DayLedger Backend Server is running on http://localhost:${PORT}`);
-  console.log(`📡 MongoDB Target: ${process.env.MONGODB_URI || 'mongodb://localhost:27017/dayledger'}`);
+// Start Express server on 0.0.0.0 to accept public web requests on Render
+app.listen(PORT, '0.0.0.0', () => {
+  const isAtlas = Boolean(process.env.MONGODB_URI && process.env.MONGODB_URI.includes('mongodb+srv'));
+  const safeDbTarget = process.env.MONGODB_URI
+    ? (isAtlas ? 'MongoDB Atlas Cluster' : 'Configured MongoDB URI')
+    : 'mongodb://localhost:27017/dayledger';
+
+  console.log(`🚀 DayLedger Backend Server is running on port ${PORT}`);
+  console.log(`📡 MongoDB Target: ${safeDbTarget}`);
   connectDB();
 });
+

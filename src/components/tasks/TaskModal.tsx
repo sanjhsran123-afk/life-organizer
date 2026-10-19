@@ -99,7 +99,6 @@ export const TaskModal: React.FC = () => {
           placeholder="e.g. Complete DBMS assignment"
           error={error}
           required
-          autoFocus
         />
 
         <Textarea

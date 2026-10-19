@@ -123,17 +123,19 @@ export const PendingDebtsWidget: React.FC = () => {
                   {openTx && (
                     <button
                       onClick={() => openPaymentModal(openTx)}
-                      className="p-1.5 text-zinc-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
+                      className="p-2 sm:p-1.5 text-zinc-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
                       title="Quick Settle / Record payment"
+                      aria-label="Record payment"
                     >
-                      <CheckCircle2 className="w-4 h-4" />
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 sm:text-zinc-400 sm:hover:text-emerald-600" />
                     </button>
                   )}
 
                   <button
                     onClick={() => openPersonDetail(person.id)}
-                    className="p-1.5 text-zinc-300 hover:text-zinc-600 rounded-lg transition-colors cursor-pointer"
+                    className="p-2 sm:p-1.5 text-zinc-300 hover:text-zinc-600 rounded-lg transition-colors cursor-pointer"
                     title="View contact profile"
+                    aria-label="View contact profile"
                   >
                     <ChevronRight className="w-4 h-4" />
                   </button>

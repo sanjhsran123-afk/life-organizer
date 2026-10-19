@@ -100,7 +100,6 @@ export const NoteModal: React.FC = () => {
               placeholder="e.g. Rahul payment timeline"
               error={error}
               required
-              autoFocus
             />
           </div>
           <button

@@ -81,7 +81,6 @@ export const PersonModal: React.FC = () => {
           placeholder="e.g. Rahul Sharma"
           error={error}
           required
-          autoFocus
         />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

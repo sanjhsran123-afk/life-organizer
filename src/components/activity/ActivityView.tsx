@@ -145,7 +145,7 @@ export const ActivityView: React.FC = () => {
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-2">
+                        <div className="flex flex-wrap items-center justify-between gap-1">
                           <span className="text-xs font-semibold text-zinc-900">
                             {act.action}
                           </span>

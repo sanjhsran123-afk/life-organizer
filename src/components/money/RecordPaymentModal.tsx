@@ -107,7 +107,6 @@ export const RecordPaymentModal: React.FC = () => {
             leftIcon={<span className="font-semibold text-zinc-500">{profile.currency}</span>}
             error={error}
             required
-            autoFocus
           />
         </div>
 

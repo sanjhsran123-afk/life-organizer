@@ -416,11 +416,11 @@ export const SettingsView: React.FC = () => {
           </div>
 
           <div className="pt-4 space-y-3">
-            <div className="flex items-center justify-between text-xs text-zinc-500">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs text-zinc-500">
               <p>
                 Every sign-in, account creation, and sign-out event is permanently saved locally and on the server.
               </p>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
                 <Button
                   size="xs"
                   variant="outline"
@@ -451,9 +451,9 @@ export const SettingsView: React.FC = () => {
                 {authLogs.map((log) => (
                   <div
                     key={log.id}
-                    className="flex items-center justify-between p-2.5 rounded-xl border border-zinc-100 bg-zinc-50/70 hover:bg-zinc-50 transition-colors text-xs"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 p-2.5 rounded-xl border border-zinc-100 bg-zinc-50/70 hover:bg-zinc-50 transition-colors text-xs"
                   >
-                    <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex items-center gap-2.5 min-w-0">
                       <span
                         className={`text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0 ${
                           log.type === 'LOGIN'
@@ -466,7 +466,7 @@ export const SettingsView: React.FC = () => {
                         {log.type}
                       </span>
                       <div className="min-w-0">
-                        <span className="font-semibold text-zinc-800 mr-2">{log.name || 'User'}</span>
+                        <span className="font-semibold text-zinc-800 mr-1.5">{log.name || 'User'}</span>
                         <span className="text-zinc-500 font-mono text-[11px] truncate">({log.email})</span>
                         {log.details && (
                           <span className="text-zinc-400 text-[11px] ml-2 hidden sm:inline">
@@ -475,7 +475,7 @@ export const SettingsView: React.FC = () => {
                         )}
                       </div>
                     </div>
-                    <span className="text-[11px] text-zinc-400 font-mono shrink-0 ml-3">
+                    <span className="text-[10px] sm:text-[11px] text-zinc-400 font-mono shrink-0 self-end sm:self-auto sm:ml-3">
                       {new Date(log.timestamp).toLocaleString([], {
                         month: 'short',
                         day: 'numeric',

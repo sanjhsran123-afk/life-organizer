@@ -22,7 +22,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           ref={ref}
           id={textareaId}
           rows={rows}
-          className={`w-full bg-white border border-zinc-200/90 rounded-xl text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition-all duration-150 p-3 ${
+          className={`w-full bg-white border border-zinc-200/90 rounded-xl text-base sm:text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition-all duration-150 p-3.5 sm:p-3 ${
             error ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/10' : ''
           } disabled:bg-zinc-50 disabled:text-zinc-400 disabled:cursor-not-allowed resize-y ${className}`}
           {...props}

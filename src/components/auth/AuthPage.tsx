@@ -238,18 +238,18 @@ export const AuthPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-zinc-50 via-indigo-50/30 to-purple-50/20 flex flex-col justify-center items-center p-4 sm:p-6 lg:p-8 selection:bg-indigo-100 selection:text-indigo-900">
+    <div className="min-h-screen bg-gradient-to-br from-zinc-50 via-indigo-50/30 to-purple-50/20 flex flex-col justify-center items-center p-3.5 sm:p-6 lg:p-8 selection:bg-indigo-100 selection:text-indigo-900 safe-area-pb">
       {/* Background ambient accents */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         <div className="absolute -top-40 -right-40 w-96 h-96 bg-indigo-200/40 rounded-full blur-3xl opacity-70" />
         <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-200/40 rounded-full blur-3xl opacity-70" />
       </div>
 
-      <div className="w-full max-w-lg relative z-10 animate-fade-in my-6">
+      <div className="w-full max-w-lg relative z-10 animate-fade-in my-4 sm:my-6">
         {/* Brand Header */}
-        <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-500/25 mb-3 ring-4 ring-indigo-50">
-            <Sparkles className="w-7 h-7" />
+        <div className="text-center mb-5 sm:mb-6">
+          <div className="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-500/25 mb-3 ring-4 ring-indigo-50">
+            <Sparkles className="w-6 h-6 sm:w-7 sm:h-7" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900">
             Day<span className="text-indigo-600">Ledger</span>
@@ -269,14 +269,14 @@ export const AuthPage: React.FC = () => {
             />
             <span className="text-zinc-700 font-medium">
               {mongoStatus.status === 'connected'
-                ? 'MongoDB Connected (Compass Ready)'
+                ? 'MongoDB Connected'
                 : 'Offline / Local Session Ready'}
             </span>
           </div>
         </div>
 
         {/* Auth Card */}
-        <div className="bg-white/95 backdrop-blur-md border border-zinc-200/80 rounded-2xl shadow-xl shadow-zinc-200/50 p-6 sm:p-8">
+        <div className="bg-white/95 backdrop-blur-md border border-zinc-200/80 rounded-2xl shadow-xl shadow-zinc-200/50 p-4 sm:p-8">
           {/* Two Clear Options: Log in vs Sign up */}
           <div className="flex bg-zinc-100/90 p-1 rounded-xl mb-6 border border-zinc-200/60">
             <button
@@ -406,7 +406,7 @@ export const AuthPage: React.FC = () => {
                         if (fieldErrors.name) setFieldErrors((prev) => ({ ...prev, name: '' }));
                       }}
                       placeholder="e.g. Madhav Sharma"
-                      className={`w-full pl-10 pr-3.5 py-2 bg-zinc-50/70 border rounded-xl text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-all ${
+                      className={`w-full pl-10 pr-3.5 py-2.5 min-h-[44px] bg-zinc-50/70 border rounded-xl text-base sm:text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-all ${
                         fieldErrors.name
                           ? 'border-rose-300 focus:border-rose-500 focus:ring-2 focus:ring-rose-100'
                           : 'border-zinc-200 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100'
@@ -435,7 +435,7 @@ export const AuthPage: React.FC = () => {
                         max={new Date().toISOString().split('T')[0]}
                         value={dateOfBirth}
                         onChange={handleDobChange}
-                        className={`w-full pl-10 pr-3 py-2 bg-zinc-50/70 border rounded-xl text-sm text-zinc-900 outline-none transition-all ${
+                        className={`w-full pl-10 pr-3 py-2.5 min-h-[44px] bg-zinc-50/70 border rounded-xl text-base sm:text-sm text-zinc-900 outline-none transition-all ${
                           fieldErrors.dateOfBirth
                             ? 'border-rose-300 focus:border-rose-500 focus:ring-2 focus:ring-rose-100'
                             : 'border-zinc-200 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100'
@@ -474,7 +474,7 @@ export const AuthPage: React.FC = () => {
                           if (fieldErrors.age) setFieldErrors((prev) => ({ ...prev, age: '' }));
                         }}
                         placeholder="e.g. 24"
-                        className={`w-full pl-10 pr-3.5 py-2 bg-zinc-50/70 border rounded-xl text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-all ${
+                        className={`w-full pl-10 pr-3.5 py-2.5 min-h-[44px] bg-zinc-50/70 border rounded-xl text-base sm:text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-all ${
                           fieldErrors.age
                             ? 'border-rose-300 focus:border-rose-500 focus:ring-2 focus:ring-rose-100'
                             : 'border-zinc-200 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100'
@@ -507,7 +507,7 @@ export const AuthPage: React.FC = () => {
                           if (fieldErrors.email) setFieldErrors((prev) => ({ ...prev, email: '' }));
                         }}
                         placeholder="name@example.com"
-                        className={`w-full pl-10 pr-3.5 py-2 bg-zinc-50/70 border rounded-xl text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-all ${
+                        className={`w-full pl-10 pr-3.5 py-2.5 min-h-[44px] bg-zinc-50/70 border rounded-xl text-base sm:text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-all ${
                           fieldErrors.email
                             ? 'border-rose-300 focus:border-rose-500 focus:ring-2 focus:ring-rose-100'
                             : 'border-zinc-200 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100'
@@ -537,7 +537,7 @@ export const AuthPage: React.FC = () => {
                           if (fieldErrors.phone) setFieldErrors((prev) => ({ ...prev, phone: '' }));
                         }}
                         placeholder="+91 98765 43210"
-                        className={`w-full pl-10 pr-3.5 py-2 bg-zinc-50/70 border rounded-xl text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-all ${
+                        className={`w-full pl-10 pr-3.5 py-2.5 min-h-[44px] bg-zinc-50/70 border rounded-xl text-base sm:text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-all ${
                           fieldErrors.phone
                             ? 'border-rose-300 focus:border-rose-500 focus:ring-2 focus:ring-rose-100'
                             : 'border-zinc-200 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100'
@@ -573,7 +573,7 @@ export const AuthPage: React.FC = () => {
                           if (fieldErrors.password) setFieldErrors((prev) => ({ ...prev, password: '' }));
                         }}
                         placeholder="••••••••"
-                        className={`w-full pl-10 pr-9 py-2 bg-zinc-50/70 border rounded-xl text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-all ${
+                        className={`w-full pl-10 pr-9 py-2.5 min-h-[44px] bg-zinc-50/70 border rounded-xl text-base sm:text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-all ${
                           fieldErrors.password
                             ? 'border-rose-300 focus:border-rose-500 focus:ring-2 focus:ring-rose-100'
                             : 'border-zinc-200 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100'
@@ -585,7 +585,7 @@ export const AuthPage: React.FC = () => {
                         className="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-400 hover:text-zinc-600 transition-colors cursor-pointer"
                         title={showPassword ? 'Hide password' : 'Show password'}
                       >
-                        {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     </div>
                     {fieldErrors.password && (
@@ -622,7 +622,7 @@ export const AuthPage: React.FC = () => {
                           if (fieldErrors.confirmPassword) setFieldErrors((prev) => ({ ...prev, confirmPassword: '' }));
                         }}
                         placeholder="••••••••"
-                        className={`w-full pl-10 pr-9 py-2 bg-zinc-50/70 border rounded-xl text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-all ${
+                        className={`w-full pl-10 pr-9 py-2.5 min-h-[44px] bg-zinc-50/70 border rounded-xl text-base sm:text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-all ${
                           fieldErrors.confirmPassword
                             ? 'border-rose-300 focus:border-rose-500 focus:ring-2 focus:ring-rose-100'
                             : 'border-zinc-200 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100'
@@ -634,7 +634,7 @@ export const AuthPage: React.FC = () => {
                         className="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-400 hover:text-zinc-600 transition-colors cursor-pointer"
                         title={showConfirmPassword ? 'Hide password' : 'Show password'}
                       >
-                        {showConfirmPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                        {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     </div>
                     {fieldErrors.confirmPassword && (
@@ -666,7 +666,7 @@ export const AuthPage: React.FC = () => {
                         if (fieldErrors.email) setFieldErrors((prev) => ({ ...prev, email: '' }));
                       }}
                       placeholder="name@example.com or phone"
-                      className="w-full pl-10 pr-3.5 py-2.5 bg-zinc-50/70 border border-zinc-200 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 rounded-xl text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-all"
+                      className="w-full pl-10 pr-3.5 py-2.5 min-h-[44px] bg-zinc-50/70 border border-zinc-200 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 rounded-xl text-base sm:text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-all"
                     />
                   </div>
                   {fieldErrors.email && (
@@ -697,7 +697,7 @@ export const AuthPage: React.FC = () => {
                         if (fieldErrors.password) setFieldErrors((prev) => ({ ...prev, password: '' }));
                       }}
                       placeholder="••••••••"
-                      className="w-full pl-10 pr-10 py-2.5 bg-zinc-50/70 border border-zinc-200 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 rounded-xl text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-all"
+                      className="w-full pl-10 pr-10 py-2.5 min-h-[44px] bg-zinc-50/70 border border-zinc-200 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 rounded-xl text-base sm:text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-all"
                     />
                     <button
                       type="button"

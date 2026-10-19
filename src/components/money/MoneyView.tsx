@@ -98,11 +98,12 @@ export const MoneyView: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto">
           <Button
             variant="primary"
             icon={<ArrowUpRight className="w-4 h-4 text-emerald-200" />}
             onClick={() => openTransactionModal({ initialType: 'LENT' })}
+            className="w-full sm:w-auto"
           >
             Lend Money
           </Button>
@@ -111,6 +112,7 @@ export const MoneyView: React.FC = () => {
             variant="outline"
             icon={<ArrowDownLeft className="w-4 h-4 text-amber-700" />}
             onClick={() => openTransactionModal({ initialType: 'BORROWED' })}
+            className="w-full sm:w-auto"
           >
             Borrow Money
           </Button>
@@ -213,20 +215,20 @@ export const MoneyView: React.FC = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
           <div className="sm:col-span-2 relative">
-            <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-2.5" />
+            <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-3 sm:top-2.5" />
             <input
               type="text"
               placeholder="Search by person name, reason, or notes..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-white border border-zinc-200/90 rounded-xl text-xs pl-9 pr-3 py-2 text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10"
+              className="w-full bg-white border border-zinc-200/90 rounded-xl text-base sm:text-xs pl-9 pr-3 py-2.5 sm:py-2 min-h-[42px] sm:min-h-0 text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10"
             />
           </div>
 
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="bg-white border border-zinc-200/90 rounded-xl text-xs px-3 py-2 text-zinc-700 focus:outline-none focus:border-indigo-500 cursor-pointer"
+            className="bg-white border border-zinc-200/90 rounded-xl text-base sm:text-xs px-3 py-2.5 sm:py-2 min-h-[42px] sm:min-h-0 text-zinc-700 focus:outline-none focus:border-indigo-500 cursor-pointer"
           >
             <option value="all">All Categories</option>
             <option value="Personal">Personal</option>
@@ -325,8 +327,8 @@ export const MoneyView: React.FC = () => {
                   </div>
 
                   {/* Right: Amounts & Settlement Actions */}
-                  <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-zinc-100">
-                    <div className="text-left sm:text-right">
+                  <div className="flex flex-col sm:items-end justify-between sm:justify-center gap-2.5 shrink-0 pt-2.5 sm:pt-0 border-t sm:border-t-0 border-zinc-100">
+                    <div className="flex items-baseline justify-between sm:block sm:text-right w-full sm:w-auto">
                       <div className="text-base sm:text-lg font-bold text-zinc-900">
                         {formatCurrency(tx.amount, profile.currency)}
                       </div>
@@ -347,7 +349,7 @@ export const MoneyView: React.FC = () => {
 
                     {/* Progress bar if partially paid */}
                     {tx.paidAmount > 0 && !isSettled && (
-                      <div className="w-28 h-1.5 bg-zinc-100 rounded-full overflow-hidden hidden sm:block">
+                      <div className="w-full sm:w-28 h-1.5 bg-zinc-100 rounded-full overflow-hidden">
                         <div
                           className="bg-emerald-500 h-full rounded-full"
                           style={{ width: `${progressPct}%` }}
@@ -355,33 +357,38 @@ export const MoneyView: React.FC = () => {
                       </div>
                     )}
 
-                    <div className="flex items-center gap-1.5">
-                      {!isSettled && (
+                    <div className="flex items-center justify-between sm:justify-end gap-1.5 w-full sm:w-auto pt-1 sm:pt-0">
+                      {!isSettled ? (
                         <Button
                           size="xs"
                           variant="primary"
                           icon={<CheckCircle2 className="w-3 h-3" />}
                           onClick={() => openPaymentModal(tx)}
+                          className="flex-1 sm:flex-initial py-2 sm:py-1 text-xs"
                         >
                           Settle ({formatCurrency(remaining, profile.currency)})
                         </Button>
-                      )}
+                      ) : <div />}
 
-                      <button
-                        onClick={() => openTransactionModal({ transaction: tx })}
-                        className="p-1.5 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 rounded-lg transition-colors cursor-pointer"
-                        title="Edit transaction"
-                      >
-                        <Edit2 className="w-3.5 h-3.5" />
-                      </button>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          onClick={() => openTransactionModal({ transaction: tx })}
+                          className="p-2 sm:p-1.5 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 rounded-lg transition-colors cursor-pointer"
+                          title="Edit transaction"
+                          aria-label="Edit transaction"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
 
-                      <button
-                        onClick={() => setTxToDelete(tx)}
-                        className="p-1.5 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
-                        title="Delete transaction"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                        <button
+                          onClick={() => setTxToDelete(tx)}
+                          className="p-2 sm:p-1.5 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                          title="Delete transaction"
+                          aria-label="Delete transaction"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>

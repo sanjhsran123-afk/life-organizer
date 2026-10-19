@@ -78,6 +78,7 @@ export const NotesView: React.FC = () => {
           variant="primary"
           icon={<Plus className="w-4 h-4" />}
           onClick={() => openNoteModal()}
+          className="w-full sm:w-auto"
         >
           New Note
         </Button>
@@ -87,13 +88,13 @@ export const NotesView: React.FC = () => {
       <div className="space-y-3">
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
-            <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-2.5" />
+            <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-3 sm:top-2.5" />
             <input
               type="text"
               placeholder="Search notes by title, tag, or content..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-white border border-zinc-200/90 rounded-xl text-xs pl-9 pr-3 py-2 text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10"
+              className="w-full bg-white border border-zinc-200/90 rounded-xl text-base sm:text-xs pl-9 pr-3 py-2.5 sm:py-2 min-h-[42px] sm:min-h-0 text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10"
             />
           </div>
 
@@ -235,18 +236,22 @@ export const NotesView: React.FC = () => {
                   {/* Card Footer: Date & Actions */}
                   <div className="flex items-center justify-between text-[11px] text-zinc-400 pt-1">
                     <span>{formatRelativeDate(note.updatedAt.split('T')[0])}</span>
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={() => openNoteModal({ note })}
-                        className="p-1 text-zinc-400 hover:text-zinc-700 rounded hover:bg-zinc-100"
+                        className="p-1.5 text-zinc-400 hover:text-zinc-700 rounded hover:bg-zinc-100 cursor-pointer"
+                        title="Edit note"
+                        aria-label="Edit note"
                       >
-                        <Edit2 className="w-3 h-3" />
+                        <Edit2 className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => setNoteToDelete(note)}
-                        className="p-1 text-zinc-400 hover:text-rose-600 rounded hover:bg-rose-50"
+                        className="p-1.5 text-zinc-400 hover:text-rose-600 rounded hover:bg-rose-50 cursor-pointer"
+                        title="Delete note"
+                        aria-label="Delete note"
                       >
-                        <Trash2 className="w-3 h-3" />
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>

@@ -93,14 +93,15 @@ export const TopNavbar: React.FC = () => {
       </div>
 
       {/* Right controls */}
-      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+      <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
         {/* Search trigger button */}
         <button
           onClick={() => setSearchOpen(true)}
-          className="flex items-center gap-2 bg-zinc-50 hover:bg-zinc-100/90 border border-zinc-200/80 rounded-xl px-2.5 sm:px-3 py-1.5 text-xs text-zinc-500 hover:text-zinc-700 transition-colors cursor-pointer group shadow-2xs"
+          className="flex items-center gap-2 bg-zinc-50 hover:bg-zinc-100/90 border border-zinc-200/80 rounded-xl p-2 sm:px-3 sm:py-1.5 text-xs text-zinc-500 hover:text-zinc-700 transition-colors cursor-pointer group shadow-2xs"
           title="Search anything (Ctrl+K / ⌘K)"
+          aria-label="Search"
         >
-          <Search className="w-3.5 h-3.5 text-zinc-400 group-hover:text-zinc-600" />
+          <Search className="w-4 h-4 sm:w-3.5 sm:h-3.5 text-zinc-500 sm:text-zinc-400 group-hover:text-zinc-600" />
           <span className="hidden sm:inline">Search...</span>
           <kbd className="hidden sm:inline-flex items-center gap-0.5 text-[10px] bg-white border border-zinc-200/80 text-zinc-500 px-1.5 py-0.5 rounded font-mono shadow-2xs">
             ⌘K
@@ -111,12 +112,12 @@ export const TopNavbar: React.FC = () => {
         <Button
           size="sm"
           variant="primary"
-          icon={<Plus className="w-3.5 h-3.5 stroke-[2.5]" />}
+          icon={<Plus className="w-4 h-4 sm:w-3.5 sm:h-3.5 stroke-[2.5]" />}
           onClick={() => setQuickAddOpen(true)}
-          className="shadow-xs"
+          className="shadow-xs px-2.5 sm:px-3"
+          aria-label="Quick Add"
         >
           <span className="hidden sm:inline">Quick Add</span>
-          <span className="sm:hidden">Add</span>
         </Button>
 
         {/* Notification Bell */}
@@ -132,15 +133,15 @@ export const TopNavbar: React.FC = () => {
           )}
         </button>
 
-        {/* Direct Log Out Button */}
+        {/* Direct Log Out Button (visible on desktop/tablet, mobile uses profile menu) */}
         <button
           onClick={logout}
-          className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border border-rose-200/90 bg-rose-50/70 hover:bg-rose-100 text-rose-700 hover:text-rose-800 text-xs font-semibold shadow-2xs transition-all cursor-pointer group"
+          className="hidden sm:flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border border-rose-200/90 bg-rose-50/70 hover:bg-rose-100 text-rose-700 hover:text-rose-800 text-xs font-semibold shadow-2xs transition-all cursor-pointer group"
           title="Log out of DayLedger"
           aria-label="Log Out"
         >
           <LogOut className="w-3.5 h-3.5 text-rose-500 group-hover:scale-110 transition-transform" />
-          <span className="hidden sm:inline">Log Out</span>
+          <span>Log Out</span>
         </button>
 
         {/* Profile Avatar with Dropdown */}

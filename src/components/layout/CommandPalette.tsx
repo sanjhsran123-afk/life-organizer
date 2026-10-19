@@ -107,7 +107,7 @@ export const CommandPalette: React.FC = () => {
   if (!searchOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-16 sm:pt-24 px-4 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-8 sm:pt-24 px-3 sm:px-4 overflow-y-auto safe-area-pt">
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-zinc-900/40 backdrop-blur-[2px] transition-opacity"
@@ -118,7 +118,7 @@ export const CommandPalette: React.FC = () => {
       {/* Palette Container */}
       <div className="relative w-full max-w-xl bg-white rounded-2xl border border-zinc-200/90 shadow-popover overflow-hidden z-10 animate-pop-in">
         {/* Search Input bar */}
-        <div className="flex items-center px-4 py-3.5 border-b border-zinc-100 gap-3">
+        <div className="flex items-center px-3.5 sm:px-4 py-3 sm:py-3.5 border-b border-zinc-100 gap-2.5 sm:gap-3">
           <Search className="w-4 h-4 text-zinc-400 shrink-0" />
           <input
             ref={inputRef}
@@ -126,7 +126,7 @@ export const CommandPalette: React.FC = () => {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search tasks, money, people, notes..."
-            className="w-full text-sm text-zinc-900 placeholder:text-zinc-400 bg-transparent focus:outline-none"
+            className="w-full text-base sm:text-sm text-zinc-900 placeholder:text-zinc-400 bg-transparent focus:outline-none"
           />
           {query && (
             <button
@@ -172,7 +172,7 @@ export const CommandPalette: React.FC = () => {
                         <Icon className="w-3.5 h-3.5 text-zinc-400 group-hover:text-indigo-600" />
                         <span>{act.label}</span>
                       </div>
-                      <ArrowRight className="w-3 h-3 text-zinc-300 group-hover:text-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <ArrowRight className="w-3 h-3 text-zinc-300 group-hover:text-indigo-500 opacity-60 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity" />
                     </button>
                   );
                 })}

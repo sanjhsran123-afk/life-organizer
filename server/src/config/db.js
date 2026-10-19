@@ -9,9 +9,11 @@ export const connectDB = async () => {
     console.log(`✅ [MongoDB Connected] Host: ${conn.connection.host}, Database: ${conn.connection.name}`);
     return true;
   } catch (error) {
-    console.warn(`⚠️ [MongoDB Connection Warning]: Could not reach ${uri}.`);
+    const isAtlas = uri.includes('mongodb+srv');
+    const safeTarget = isAtlas ? 'MongoDB Atlas Cluster' : 'mongodb://localhost:27017/dayledger';
+    console.warn(`⚠️ [MongoDB Connection Warning]: Could not reach ${safeTarget}.`);
     console.warn(`   Reason: ${error.message}`);
-    console.warn(`   Make sure your local MongoDB service is started (e.g. 'net start MongoDB' or 'mongod').`);
+    console.warn(`   Verify MongoDB Atlas network access (hosting provider's approved IPs or private connection) or local MongoDB service.`);
     return false;
   }
 };

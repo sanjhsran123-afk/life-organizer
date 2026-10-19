@@ -41,7 +41,7 @@ export const DashboardView: React.FC = () => {
         </div>
 
         {/* Quick action buttons */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none sm:flex-wrap">
           <Button
             size="sm"
             variant="primary"

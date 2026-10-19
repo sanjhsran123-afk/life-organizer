@@ -123,21 +123,24 @@ export const AdminUserDetailModal: React.FC<AdminUserDetailModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/50 backdrop-blur-xs animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-6 bg-black/50 backdrop-blur-xs animate-fade-in">
       <div
-        className="bg-white rounded-2xl shadow-2xl border border-zinc-200 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-pop-in"
+        className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl border border-zinc-200 w-full max-w-2xl max-h-[92dvh] sm:max-h-[88vh] flex flex-col overflow-hidden animate-pop-in"
         role="dialog"
         aria-modal="true"
         aria-labelledby="user-detail-title"
       >
+        {/* Mobile Pull Handle */}
+        <div className="sm:hidden w-10 h-1 bg-zinc-300 rounded-full mx-auto mt-2.5 mb-1 shrink-0" />
+
         {/* Header */}
-        <div className="px-6 py-5 border-b border-zinc-100 flex items-center justify-between bg-zinc-50/70">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-indigo-600 flex items-center justify-center text-white font-bold text-base shadow-xs">
+        <div className="px-4 py-3.5 sm:px-6 sm:py-5 border-b border-zinc-100 flex items-center justify-between bg-zinc-50/70 shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-indigo-600 flex items-center justify-center text-white font-bold text-base shadow-xs shrink-0">
               {user.name.charAt(0).toUpperCase()}
             </div>
-            <div>
-              <h2 id="user-detail-title" className="text-lg font-bold text-zinc-900 leading-tight">
+            <div className="min-w-0">
+              <h2 id="user-detail-title" className="text-base sm:text-lg font-bold text-zinc-900 leading-tight truncate">
                 {user.name}
               </h2>
               <div className="flex items-center gap-2 mt-0.5">

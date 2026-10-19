@@ -85,12 +85,13 @@ export const PersonDetailModal: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto">
             <Button
               size="sm"
               variant="outline"
               icon={<Plus className="w-3.5 h-3.5" />}
               onClick={() => openTransactionModal({ initialPersonId: person.id, initialType: 'LENT' })}
+              className="w-full sm:w-auto"
             >
               Add Entry
             </Button>
@@ -99,6 +100,7 @@ export const PersonDetailModal: React.FC = () => {
               variant="outline"
               icon={<FileText className="w-3.5 h-3.5" />}
               onClick={() => openNoteModal({ initialPersonId: person.id })}
+              className="w-full sm:w-auto"
             >
               Add Note
             </Button>
@@ -176,8 +178,8 @@ export const PersonDetailModal: React.FC = () => {
                     key={tx.id}
                     className="p-3.5 rounded-xl border border-zinc-200/70 bg-white hover:border-zinc-300 transition-colors shadow-2xs space-y-2"
                   >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-center gap-2.5">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div className="flex items-center gap-2.5 min-w-0">
                         <div
                           className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
                             isLent
@@ -191,39 +193,41 @@ export const PersonDetailModal: React.FC = () => {
                             <ArrowDownLeft className="w-3.5 h-3.5" />
                           )}
                         </div>
-                        <div>
+                        <div className="min-w-0 flex flex-wrap items-center gap-1.5">
                           <span className="text-xs font-semibold text-zinc-900">
                             {isLent ? 'Lent' : 'Borrowed'} {formatCurrency(tx.amount, profile.currency)}
                           </span>
-                          <span className="text-xs text-zinc-400 mx-1.5">•</span>
+                          <span className="text-xs text-zinc-400">•</span>
                           <span className="text-[11px] text-zinc-500">{formatDate(tx.date)}</span>
-                          <span className="text-xs text-zinc-400 mx-1.5">•</span>
+                          <span className="text-xs text-zinc-400">•</span>
                           <Badge size="xs" variant="neutral">
                             {tx.category}
                           </Badge>
                         </div>
                       </div>
 
-                      <Badge
-                        size="xs"
-                        variant={
-                          tx.status === 'paid'
-                            ? 'success'
+                      <div className="self-start sm:self-auto shrink-0">
+                        <Badge
+                          size="xs"
+                          variant={
+                            tx.status === 'paid'
+                              ? 'success'
+                              : overdue
+                              ? 'danger'
+                              : tx.status === 'partially_paid'
+                              ? 'purple'
+                              : 'warning'
+                          }
+                        >
+                          {tx.status === 'paid'
+                            ? 'Settled'
                             : overdue
-                            ? 'danger'
+                            ? 'Overdue'
                             : tx.status === 'partially_paid'
-                            ? 'purple'
-                            : 'warning'
-                        }
-                      >
-                        {tx.status === 'paid'
-                          ? 'Settled'
-                          : overdue
-                          ? 'Overdue'
-                          : tx.status === 'partially_paid'
-                          ? `Partially Paid (${formatCurrency(tx.paidAmount, profile.currency)})`
-                          : 'Pending'}
-                      </Badge>
+                            ? `Partially Paid (${formatCurrency(tx.paidAmount, profile.currency)})`
+                            : 'Pending'}
+                        </Badge>
+                      </div>
                     </div>
 
                     {tx.notes && (
@@ -233,7 +237,7 @@ export const PersonDetailModal: React.FC = () => {
                     )}
 
                     {/* Footer with actions and expected date */}
-                    <div className="flex items-center justify-between text-[11px] text-zinc-500 pt-1 border-t border-zinc-100">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] text-zinc-500 pt-2 border-t border-zinc-100">
                       <span>
                         Expected return:{' '}
                         <strong className="text-zinc-700 font-medium">
@@ -241,19 +245,19 @@ export const PersonDetailModal: React.FC = () => {
                         </strong>
                       </span>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 self-end sm:self-auto">
                         {remaining > 0 && (
                           <button
                             onClick={() => openPaymentModal(tx)}
-                            className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 cursor-pointer"
+                            className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 cursor-pointer py-1"
                           >
-                            <CheckCircle2 className="w-3 h-3" />
+                            <CheckCircle2 className="w-3.5 h-3.5" />
                             Record Payment ({formatCurrency(remaining, profile.currency)})
                           </button>
                         )}
                         <button
                           onClick={() => openTransactionModal({ transaction: tx })}
-                          className="text-xs text-zinc-400 hover:text-zinc-700 cursor-pointer"
+                          className="text-xs text-zinc-400 hover:text-zinc-700 cursor-pointer p-1"
                         >
                           Edit
                         </button>

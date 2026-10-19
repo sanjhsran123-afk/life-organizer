@@ -47,31 +47,38 @@ export const Modal: React.FC<ModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-6 overflow-hidden">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-zinc-900/30 backdrop-blur-[2px] transition-opacity duration-200"
+        className="fixed inset-0 bg-zinc-900/40 backdrop-blur-[2px] transition-opacity duration-200"
         onClick={onClose}
         aria-hidden="true"
       />
 
       {/* Modal Dialog */}
       <div
-        className={`relative w-full ${maxWidthStyles[maxWidth]} bg-white rounded-2xl border border-zinc-200/90 shadow-popover overflow-hidden z-10 animate-pop-in my-8`}
+        className={`relative w-full ${maxWidthStyles[maxWidth]} bg-white rounded-t-3xl sm:rounded-2xl border border-zinc-200/90 shadow-popover z-10 animate-pop-in flex flex-col max-h-[92dvh] sm:max-h-[88vh] overflow-hidden`}
         role="dialog"
         aria-modal="true"
       >
+        {/* Mobile Pull Handle */}
+        <div className="sm:hidden w-10 h-1 bg-zinc-300 rounded-full mx-auto mt-2.5 mb-1 shrink-0" />
+
         {(title || showCloseButton) && (
-          <div className="flex items-start justify-between px-6 pt-5 pb-4 border-b border-zinc-100">
-            <div>
-              {title && <h3 className="text-base font-semibold text-zinc-900 tracking-tight">{title}</h3>}
-              {subtitle && <p className="text-xs text-zinc-500 mt-0.5">{subtitle}</p>}
+          <div className="flex items-start justify-between px-5 sm:px-6 pt-2.5 sm:pt-5 pb-3 sm:pb-4 border-b border-zinc-100 shrink-0">
+            <div className="min-w-0 pr-2">
+              {title && (
+                <h3 className="text-sm sm:text-base font-bold text-zinc-900 tracking-tight truncate">
+                  {title}
+                </h3>
+              )}
+              {subtitle && <p className="text-xs text-zinc-500 mt-0.5 line-clamp-2">{subtitle}</p>}
             </div>
             {showCloseButton && (
               <button
                 type="button"
                 onClick={onClose}
-                className="text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 p-1.5 rounded-lg transition-colors cursor-pointer"
+                className="text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 p-2 sm:p-1.5 rounded-lg transition-colors cursor-pointer shrink-0"
                 aria-label="Close modal"
               >
                 <X className="w-4 h-4" />
@@ -80,7 +87,10 @@ export const Modal: React.FC<ModalProps> = ({
           </div>
         )}
 
-        <div className="p-6">{children}</div>
+        {/* Scrollable Content Body */}
+        <div className="p-4 sm:p-6 overflow-y-auto flex-1 overscroll-contain safe-area-pb">
+          {children}
+        </div>
       </div>
     </div>
   );
