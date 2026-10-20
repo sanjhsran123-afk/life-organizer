@@ -13,7 +13,32 @@ import {
   AdminActivityResponse,
 } from '../types';
 
-const API_BASE = '/api';
+/**
+ * Resolves the backend API base endpoint.
+ * - In production (or when VITE_API_URL is configured), routes API calls to the Render backend.
+ * - In local development (when VITE_API_URL is omitted), defaults to '/api' to use Vite's local dev proxy.
+ * - Strips any trailing slashes and ensures '/api' is correctly included without duplication or omission.
+ */
+export function getApiBaseUrl(): string {
+  const envUrl = (import.meta.env.VITE_API_URL || '').trim();
+
+  // If VITE_API_URL is provided, normalize and use it.
+  // In production without VITE_API_URL, default to the Render backend service.
+  // In local development without VITE_API_URL, default to empty to route through Vite's local '/api' proxy.
+  const targetUrl = envUrl || (import.meta.env.PROD ? 'https://life-organizer-gmpc.onrender.com' : '');
+
+  if (!targetUrl) {
+    return '/api';
+  }
+
+  // Strip trailing slashes
+  const cleanUrl = targetUrl.replace(/\/+$/, '');
+
+  // If the URL already ends with /api, use it as is; otherwise append /api
+  return cleanUrl.endsWith('/api') ? cleanUrl : `${cleanUrl}/api`;
+}
+
+export const API_BASE = getApiBaseUrl();
 const AUTH_TOKEN_KEY = 'dayledger_auth_token';
 
 export function getAuthToken(): string | null {
@@ -176,7 +201,7 @@ export async function apiRegister(data: RegisterFormData): Promise<AuthResponse>
         email: normalizedEmail,
         phone: normalizedPhone,
       }),
-      signal: AbortSignal.timeout(3000),
+      signal: AbortSignal.timeout(10000),
     });
 
     if (res.ok) {
@@ -262,7 +287,7 @@ export async function apiLogin(data: {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
-      signal: AbortSignal.timeout(3000),
+      signal: AbortSignal.timeout(10000),
     });
 
     if (res.ok) {
@@ -373,12 +398,13 @@ export async function checkBackendHealth(): Promise<{
   database?: string;
 }> {
   try {
-    const res = await fetch(`${API_BASE}/health`, { signal: AbortSignal.timeout(2000) });
+    const res = await fetch(`${API_BASE}/health`, { signal: AbortSignal.timeout(8000) });
     if (!res.ok) return { connected: false, status: 'disconnected' };
     const data = await res.json();
+    const isDbConnected = data.database === 'connected' || Boolean(data.database);
     return {
-      connected: data.status === 'connected',
-      status: data.status,
+      connected: data.status === 'ok' || data.status === 'connected',
+      status: isDbConnected ? 'connected' : 'disconnected',
       database: data.database,
     };
   } catch {
@@ -397,7 +423,7 @@ export async function fetchAllData(): Promise<{
   try {
     const res = await fetch(`${API_BASE}/all`, {
       headers: getHeaders(),
-      signal: AbortSignal.timeout(3500),
+      signal: AbortSignal.timeout(10000),
     });
     if (!res.ok) return null;
     return await res.json();

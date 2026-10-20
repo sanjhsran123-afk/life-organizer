@@ -24,7 +24,7 @@ const isProduction = process.env.NODE_ENV === 'production';
 const parseOrigins = (val) =>
   (val || '')
     .split(',')
-    .map((origin) => origin.trim())
+    .map((origin) => origin.trim().replace(/\/+$/, ''))
     .filter(Boolean);
 
 const configuredWebOrigins = parseOrigins(process.env.CLIENT_URL || process.env.CORS_ORIGIN);
@@ -61,21 +61,28 @@ app.use(
         return callback(null, true);
       }
 
+      // Clean incoming origin from trailing slashes
+      const cleanOrigin = origin.replace(/\/+$/, '');
+
       // 2. In local development, permit localhost and local network testing
       if (!isProduction) {
         if (
-          devOrigins.includes(origin) ||
-          origin.startsWith('http://localhost:') ||
-          origin.startsWith('http://127.0.0.1:') ||
-          mobileAppOrigins.includes(origin) ||
-          configuredWebOrigins.includes(origin)
+          devOrigins.includes(cleanOrigin) ||
+          cleanOrigin.startsWith('http://localhost:') ||
+          cleanOrigin.startsWith('http://127.0.0.1:') ||
+          mobileAppOrigins.includes(cleanOrigin) ||
+          configuredWebOrigins.includes(cleanOrigin)
         ) {
           return callback(null, true);
         }
       }
 
-      // 3. In production, check explicitly allowed web and app origins
-      if (productionAllowedOrigins.has(origin)) {
+      // 3. In production, check explicitly allowed web, Netlify deploys, and app origins
+      if (
+        productionAllowedOrigins.has(cleanOrigin) ||
+        cleanOrigin.endsWith('.netlify.app') ||
+        cleanOrigin.endsWith('onrender.com')
+      ) {
         return callback(null, true);
       }
 
