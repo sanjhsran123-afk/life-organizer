@@ -22,10 +22,17 @@ import {
 export function getApiBaseUrl(): string {
   const envUrl = (import.meta.env.VITE_API_URL || '').trim();
 
+  // Check if running inside Capacitor native container
+  const isNative =
+    typeof window !== 'undefined' &&
+    ((window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor?.isNativePlatform?.() ||
+      window.location.protocol === 'capacitor:');
+
   // If VITE_API_URL is provided, normalize and use it.
-  // In production without VITE_API_URL, default to the Render backend service.
-  // In local development without VITE_API_URL, default to empty to route through Vite's local '/api' proxy.
-  const targetUrl = envUrl || (import.meta.env.PROD ? 'https://life-organizer-gmpc.onrender.com' : '');
+  // In native Capacitor or production without VITE_API_URL, default to the Render backend service.
+  // In local browser development without VITE_API_URL, default to empty to route through Vite's local '/api' proxy.
+  const targetUrl =
+    envUrl || (import.meta.env.PROD || isNative ? 'https://life-organizer-gmpc.onrender.com' : '');
 
   if (!targetUrl) {
     return '/api';
