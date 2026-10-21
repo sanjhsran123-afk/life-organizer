@@ -222,30 +222,8 @@ router.post('/register', async (req, res) => {
         },
       });
     } else {
-      // Offline fallback
-      const dummyId = `user_${Date.now()}`;
-      const token = jwt.sign(
-        { userId: dummyId, email: normalizedEmail, name: name.trim(), role: initialRole },
-        JWT_SECRET,
-        { expiresIn: '30d' }
-      );
-
-      await recordAuthLog(req, 'SIGNUP', normalizedEmail, name.trim(), 'Account created in offline session', dummyId);
-      return res.status(201).json({
-        message: 'Account created (Offline Mode - local session active)',
-        token,
-        isOfflineSession: true,
-        user: {
-          id: dummyId,
-          name: name.trim(),
-          email: normalizedEmail,
-          phone: normalizedPhone,
-          age: parsedAge,
-          dateOfBirth: dateOfBirth.split('T')[0],
-          role: initialRole,
-          currency: '₹',
-          currencyCode: 'INR',
-        },
+      return res.status(503).json({
+        error: 'Database service is currently unavailable. Please try again in a few moments.',
       });
     }
   } catch (err) {
@@ -341,38 +319,9 @@ router.post('/login', async (req, res) => {
         },
       });
     } else {
-      // Offline fallback
-      if (isTestCredentials || password.length >= 6) {
-        const dummyId = `user_${normalizedEmail.replace(/[^a-zA-Z0-9]/g, '_')}`;
-        const userName = isTestCredentials ? TEST_ACCOUNT.name : normalizedEmail.split('@')[0];
-        const assignedRole = isConfiguredAdminEmail(normalizedEmail) ? 'admin' : 'user';
-
-        const token = jwt.sign(
-          { userId: dummyId, email: normalizedEmail, name: userName, role: assignedRole },
-          JWT_SECRET,
-          { expiresIn: '30d' }
-        );
-
-        await recordAuthLog(req, 'LOGIN', normalizedEmail, userName, 'User signed in in offline mode', dummyId);
-        return res.json({
-          message: 'Login successful (Offline Mode)',
-          token,
-          isOfflineSession: true,
-          user: {
-            id: dummyId,
-            name: userName,
-            email: normalizedEmail,
-            phone: TEST_ACCOUNT.phone,
-            age: 24,
-            dateOfBirth: '2002-05-15',
-            role: assignedRole,
-            currency: '₹',
-            currencyCode: 'INR',
-          },
-        });
-      }
-
-      return res.status(401).json({ error: 'Invalid credentials. Use test@dayledger.app / password123' });
+      return res.status(503).json({
+        error: 'Database service is currently unavailable. Please try again in a few moments.',
+      });
     }
   } catch (err) {
     console.error('Login error:', err);
@@ -467,19 +416,8 @@ router.get('/me', async (req, res) => {
         },
       });
     } else {
-      const role = isConfiguredAdminEmail(decoded.email) ? 'admin' : (decoded.role || 'user');
-      return res.json({
-        user: {
-          id: decoded.userId,
-          name: decoded.name || 'Test User',
-          email: decoded.email || 'test@dayledger.app',
-          phone: '+919876543210',
-          age: 24,
-          dateOfBirth: '2002-05-15',
-          role,
-          currency: '₹',
-          currencyCode: 'INR',
-        },
+      return res.status(503).json({
+        error: 'Database service is currently unavailable. Please try again in a few moments.',
       });
     }
   } catch (err) {

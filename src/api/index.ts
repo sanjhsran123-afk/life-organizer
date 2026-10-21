@@ -1,3 +1,4 @@
+import { Capacitor } from '@capacitor/core';
 import {
   Task,
   Person,
@@ -22,11 +23,12 @@ import {
 export function getApiBaseUrl(): string {
   const envUrl = (import.meta.env.VITE_API_URL || '').trim();
 
-  // Check if running inside Capacitor native container
+  // Check if running inside Capacitor native container or local WebView
   const isNative =
-    typeof window !== 'undefined' &&
-    ((window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor?.isNativePlatform?.() ||
-      window.location.protocol === 'capacitor:');
+    Capacitor.isNativePlatform() ||
+    (typeof window !== 'undefined' &&
+      (window.location.protocol === 'capacitor:' ||
+        window.location.origin === 'https://localhost'));
 
   // If VITE_API_URL is provided, normalize and use it.
   // In native Capacitor or production without VITE_API_URL, default to the Render backend service.
@@ -109,50 +111,65 @@ export interface StoredUserAccount {
   phone?: string;
   age?: number;
   dateOfBirth?: string;
-  password: string;
-  currency: string;
-  currencyCode: string;
+  currency?: string;
+  currencyCode?: string;
   createdAt: string;
 }
 
-// Get all local registered users
+// Get all local registered users (sanitized, passwords are NEVER stored)
 export function getStoredUsers(): StoredUserAccount[] {
   try {
     const raw = localStorage.getItem(REGISTERED_USERS_KEY);
     if (!raw) {
-      // Seed default test account
-      const defaultUsers: StoredUserAccount[] = [
-        {
-          id: 'user_test_default',
-          name: 'Test Account',
-          email: 'test@dayledger.app',
-          phone: '+919876543210',
-          age: 24,
-          dateOfBirth: '2002-05-15',
-          password: 'password123',
-          currency: '₹',
-          currencyCode: 'INR',
-          createdAt: new Date().toISOString(),
-        },
-      ];
-      localStorage.setItem(REGISTERED_USERS_KEY, JSON.stringify(defaultUsers));
-      return defaultUsers;
+      return [];
     }
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map((u: any) => ({
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      phone: u.phone,
+      age: u.age,
+      dateOfBirth: u.dateOfBirth,
+      currency: u.currency || '₹',
+      currencyCode: u.currencyCode || 'INR',
+      createdAt: u.createdAt || new Date().toISOString(),
+    }));
   } catch {
     return [];
   }
 }
 
-// Save local registered user
-export function saveStoredUser(user: StoredUserAccount): void {
+// Save local account metadata (NEVER saves password)
+export function saveStoredUser(user: {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  age?: number;
+  dateOfBirth?: string;
+  currency?: string;
+  currencyCode?: string;
+}): void {
   try {
     const users = getStoredUsers();
-    const existingIdx = users.findIndex((u) => u.email.toLowerCase() === user.email.toLowerCase());
+    const cleanAccount: StoredUserAccount = {
+      id: user.id,
+      name: user.name,
+      email: user.email.toLowerCase().trim(),
+      phone: user.phone,
+      age: user.age,
+      dateOfBirth: user.dateOfBirth,
+      currency: user.currency || '₹',
+      currencyCode: user.currencyCode || 'INR',
+      createdAt: new Date().toISOString(),
+    };
+    const existingIdx = users.findIndex((u) => u.email.toLowerCase() === cleanAccount.email);
     if (existingIdx >= 0) {
-      users[existingIdx] = user;
+      users[existingIdx] = cleanAccount;
     } else {
-      users.push(user);
+      users.push(cleanAccount);
     }
     localStorage.setItem(REGISTERED_USERS_KEY, JSON.stringify(users));
   } catch {}
@@ -199,8 +216,9 @@ export async function apiRegister(data: RegisterFormData): Promise<AuthResponse>
   const normalizedEmail = data.email.toLowerCase().trim();
   const normalizedPhone = data.phone ? data.phone.replace(/[\s\-\(\)\.]/g, '').trim() : '';
 
+  let res: Response;
   try {
-    const res = await fetch(`${API_BASE}/auth/register`, {
+    res = await fetch(`${API_BASE}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -208,78 +226,34 @@ export async function apiRegister(data: RegisterFormData): Promise<AuthResponse>
         email: normalizedEmail,
         phone: normalizedPhone,
       }),
-      signal: AbortSignal.timeout(10000),
+      signal: AbortSignal.timeout(15000),
     });
-
-    if (res.ok) {
-      const body = await res.json();
-      // Store in local accounts list as well for fallback
-      saveStoredUser({
-        id: body.user.id,
-        name: body.user.name,
-        email: normalizedEmail,
-        phone: body.user.phone || normalizedPhone,
-        age: body.user.age || Number(data.age),
-        dateOfBirth: body.user.dateOfBirth || data.dateOfBirth,
-        password: data.password,
-        currency: body.user.currency || '₹',
-        currencyCode: body.user.currencyCode || 'INR',
-        createdAt: new Date().toISOString(),
-      });
-      recordAuthLogEntry('REGISTER', normalizedEmail, data.name.trim(), `Registered in MongoDB (Phone: ${normalizedPhone})`);
-      return body;
-    } else {
-      const errBody = await res.json().catch(() => ({}));
-      throw new Error(errBody.error || 'Registration failed');
-    }
   } catch (err: any) {
-    // If it's a validation error from server, rethrow
-    if (err.message && (err.message.includes('already exists') || err.message.includes('inconsistent') || err.message.includes('required') || err.message.includes('match'))) {
-      throw err;
-    }
+    throw new Error(
+      'Unable to connect to the server. Please check your internet connection and try again.'
+    );
+  }
 
-    // Offline / Standalone Fallback
-    const existingUsers = getStoredUsers();
-    if (existingUsers.some((u) => u.email.toLowerCase() === normalizedEmail)) {
-      throw new Error('An account with this email already exists.');
+  if (res.ok) {
+    const body = await res.json();
+    if (body.isOfflineSession) {
+      throw new Error('Offline registration is disabled. A secure server connection is required.');
     }
-    if (normalizedPhone && existingUsers.some((u) => u.phone === normalizedPhone)) {
-      throw new Error('An account with this phone number already exists.');
-    }
-
-    const dummyId = `user_${Date.now()}`;
-    const newUser: StoredUserAccount = {
-      id: dummyId,
-      name: data.name.trim(),
+    saveStoredUser({
+      id: body.user.id,
+      name: body.user.name,
       email: normalizedEmail,
-      phone: normalizedPhone,
-      age: Number(data.age),
-      dateOfBirth: data.dateOfBirth,
-      password: data.password,
-      currency: '₹',
-      currencyCode: 'INR',
-      createdAt: new Date().toISOString(),
-    };
-    saveStoredUser(newUser);
-
-    const token = `offline_token_${dummyId}_${Date.now()}`;
-    recordAuthLogEntry('REGISTER', normalizedEmail, data.name.trim(), 'Registered in Local Session');
-
-    return {
-      token,
-      isOfflineSession: true,
-      message: 'Account created successfully (Local Storage)',
-      user: {
-        id: dummyId,
-        name: data.name.trim(),
-        email: normalizedEmail,
-        phone: normalizedPhone,
-        age: Number(data.age),
-        dateOfBirth: data.dateOfBirth,
-        currency: '₹',
-        currencyCode: 'INR',
-      },
-    };
+      phone: body.user.phone || normalizedPhone,
+      age: body.user.age || Number(data.age),
+      dateOfBirth: body.user.dateOfBirth || data.dateOfBirth,
+      currency: body.user.currency || '₹',
+      currencyCode: body.user.currencyCode || 'INR',
+    });
+    recordAuthLogEntry('REGISTER', normalizedEmail, data.name.trim(), `Registered in MongoDB (Phone: ${normalizedPhone})`);
+    return body;
+  } else {
+    const errBody = await res.json().catch(() => ({}));
+    throw new Error(errBody.error || errBody.message || 'Registration failed');
   }
 }
 
@@ -289,81 +263,37 @@ export async function apiLogin(data: {
 }): Promise<AuthResponse> {
   const normalizedEmail = data.email.toLowerCase().trim();
 
+  let res: Response;
   try {
-    const res = await fetch(`${API_BASE}/auth/login`, {
+    res = await fetch(`${API_BASE}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
-      signal: AbortSignal.timeout(10000),
+      signal: AbortSignal.timeout(15000),
     });
-
-    if (res.ok) {
-      const body = await res.json();
-      saveStoredUser({
-        id: body.user.id,
-        name: body.user.name,
-        email: normalizedEmail,
-        password: data.password,
-        currency: body.user.currency || '₹',
-        currencyCode: body.user.currencyCode || 'INR',
-        createdAt: new Date().toISOString(),
-      });
-      recordAuthLogEntry('LOGIN', normalizedEmail, body.user.name, 'Signed in via Server API');
-      return body;
-    } else {
-      const errBody = await res.json().catch(() => ({}));
-      throw new Error(errBody.error || 'Invalid credentials');
-    }
   } catch (err: any) {
-    if (err.message && err.message.includes('Invalid')) {
-      throw err;
-    }
-
-    // Offline / Standalone Fallback: check stored local users
-    const users = getStoredUsers();
-    const matched = users.find(
-      (u) => u.email.toLowerCase() === normalizedEmail && u.password === data.password
+    throw new Error(
+      'Unable to connect to the server. Please check your internet connection and try again.'
     );
+  }
 
-    if (matched) {
-      const token = `offline_token_${matched.id}_${Date.now()}`;
-      recordAuthLogEntry('LOGIN', matched.email, matched.name, 'Signed in via Local Storage');
-      return {
-        token,
-        isOfflineSession: true,
-        message: 'Signed in successfully (Offline Session)',
-        user: {
-          id: matched.id,
-          name: matched.name,
-          email: matched.email,
-          currency: matched.currency || '₹',
-          currencyCode: matched.currencyCode || 'INR',
-        },
-      };
+  if (res.ok) {
+    const body = await res.json();
+    if (body.isOfflineSession) {
+      throw new Error('Offline login is disabled. A secure server connection is required.');
     }
-
-    // Check default test credentials
-    if (
-      normalizedEmail === 'test@dayledger.app' &&
-      data.password === 'password123'
-    ) {
-      const token = `offline_token_test_${Date.now()}`;
-      recordAuthLogEntry('LOGIN', normalizedEmail, 'Test Account', 'Quick Test Login');
-      return {
-        token,
-        isOfflineSession: true,
-        message: 'Signed in as Test Account',
-        user: {
-          id: 'user_test_default',
-          name: 'Test Account',
-          email: normalizedEmail,
-          currency: '₹',
-          currencyCode: 'INR',
-        },
-      };
-    }
-
-    throw new Error('Invalid email or password. Please verify your credentials.');
+    saveStoredUser({
+      id: body.user.id,
+      name: body.user.name,
+      email: normalizedEmail,
+      currency: body.user.currency || '₹',
+      currencyCode: body.user.currencyCode || 'INR',
+    });
+    recordAuthLogEntry('LOGIN', normalizedEmail, body.user.name, 'Signed in via Server API');
+    return body;
+  } else {
+    const errBody = await res.json().catch(() => ({}));
+    throw new Error(errBody.error || errBody.message || 'Invalid email or password. Please verify your credentials.');
   }
 }
 

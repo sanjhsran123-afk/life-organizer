@@ -41,9 +41,10 @@ const devOrigins = [
 
 // Standard hybrid mobile app webview origins (Capacitor / Cordova for Android and iOS builds)
 const mobileAppOrigins = [
-  'capacitor://localhost',
+  'https://localhost',     // Android WebView (Capacitor with androidScheme: 'https')
+  'capacitor://localhost', // iOS Capacitor WebView
   'ionic://localhost',
-  'http://localhost', // Android WebView default origin
+  'http://localhost',      // Android WebView default/legacy scheme
   ...configuredAppOrigins,
 ];
 

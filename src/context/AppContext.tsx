@@ -473,6 +473,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const login = useCallback(
     async (credentials: { email: string; password: string }) => {
       const res = await apiLogin(credentials);
+      if (res.isOfflineSession) {
+        throw new Error('Offline sessions are not supported. A secure server connection is required.');
+      }
       setAuthToken(res.token);
       const userObj: AuthUser = {
         id: res.user.id,
@@ -524,6 +527,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const register = useCallback(
     async (credentials: RegisterFormData) => {
       const res = await apiRegister(credentials);
+      if (res.isOfflineSession) {
+        throw new Error('Offline registration is not supported. A secure server connection is required.');
+      }
       setAuthToken(res.token);
       const userObj: AuthUser = {
         id: res.user.id,

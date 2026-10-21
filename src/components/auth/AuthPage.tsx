@@ -358,7 +358,6 @@ export const AuthPage: React.FC = () => {
                     type="button"
                     onClick={() => {
                       setEmail(acc.email);
-                      setPassword(acc.password);
                     }}
                     className={`w-full flex items-center justify-between p-2 rounded-lg border transition-all cursor-pointer text-left text-xs ${
                       email.toLowerCase() === acc.email.toLowerCase()
