@@ -1,0 +1,28 @@
+workflows:
+  dayledger-ios-simulator:
+    name: DayLedger iOS Simulator Build
+    max_build_duration: 120
+    instance_type: mac_mini_m2
+    environment:
+      node: 22
+      xcode: latest
+    scripts:
+      - name: Install JavaScript dependencies
+        script: npm ci
+      - name: Build the web app
+        script: npm run build
+      - name: Sync Capacitor iOS project
+do         script: npx cap sync ios
+      - name: Compile for iOS Simulator
+        script: >-
+          xcodebuild
+          -project ios/App/App.xcodeproj
+          -target App
+          -sdk iphonesimulator
+          -configuration Debug
+          -derivedDataPath build/ios
+          CODE_SIGNING_ALLOWED=NO
+          build
+    artifacts:
+      - build/ios/Build/Products/Debug-iphonesimulator/*.app
+      - /tmp/xcodebuild_logs/*.log
