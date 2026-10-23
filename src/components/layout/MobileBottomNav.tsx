@@ -13,11 +13,15 @@ import {
   ShieldCheck,
   LogOut,
   X,
+  Download,
+  CheckCircle2,
 } from 'lucide-react';
+import { usePwa } from '../../context/PwaContext';
 import { Avatar } from '../common/Avatar';
 
 export const MobileBottomNav: React.FC = () => {
   const { activeTab, setActiveTab, currentUser, profile, logout } = useApp();
+  const { isInstalled, isIPhone, triggerInstall } = usePwa();
   const [isMoreOpen, setIsMoreOpen] = useState(false);
 
   const navItems: Array<{ id: TabType; label: string; icon: React.ComponentType<{ className?: string }> }> = [
@@ -100,6 +104,34 @@ export const MobileBottomNav: React.FC = () => {
                   </div>
                   <span className="text-[10px] bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full uppercase">
                     Admin
+                  </span>
+                </button>
+              )}
+
+              {isInstalled ? (
+                <div className="w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-100">
+                  <div className="flex items-center gap-3">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>DayLedger Installed</span>
+                  </div>
+                  <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full uppercase tracking-wider font-bold">
+                    Active
+                  </span>
+                </div>
+              ) : (
+                <button
+                  onClick={() => {
+                    setIsMoreOpen(false);
+                    triggerInstall();
+                  }}
+                  className="w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-semibold text-indigo-700 bg-indigo-50/90 hover:bg-indigo-100/80 transition-colors cursor-pointer border border-indigo-100 shadow-2xs"
+                >
+                  <div className="flex items-center gap-3">
+                    <Download className="w-4 h-4 text-indigo-600 shrink-0" />
+                    <span>Install DayLedger</span>
+                  </div>
+                  <span className="text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full uppercase tracking-wider font-bold">
+                    {isIPhone ? 'iPhone' : 'Install'}
                   </span>
                 </button>
               )}

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
-import { Search, Plus, Bell, Sparkles, LogOut, Settings, ShieldCheck, Activity } from 'lucide-react';
+import { Search, Plus, Bell, Sparkles, LogOut, Settings, ShieldCheck, Activity, Download, CheckCircle2 } from 'lucide-react';
+import { usePwa } from '../../context/PwaContext';
 import { Button } from '../common/Button';
 import { Avatar } from '../common/Avatar';
 
@@ -16,6 +17,8 @@ export const TopNavbar: React.FC = () => {
     currentUser,
     logout,
   } = useApp();
+
+  const { isInstalled, isIPhone, triggerInstall } = usePwa();
 
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
@@ -73,7 +76,7 @@ export const TopNavbar: React.FC = () => {
   const currentMeta = tabTitles[activeTab] || tabTitles.overview;
 
   return (
-    <header className="sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-zinc-200/70 h-16 px-4 sm:px-6 flex items-center justify-between transition-colors">
+    <header className="app-topbar-safe-area sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-zinc-200/70 h-16 px-4 sm:px-6 flex items-center justify-between transition-colors">
       {/* Title & context */}
       <div className="flex items-center gap-3 min-w-0">
         <div className="md:hidden flex items-center gap-2 mr-1">
@@ -200,6 +203,38 @@ export const TopNavbar: React.FC = () => {
                     </div>
                     <span className="text-[10px] bg-purple-100 text-purple-800 px-1.5 py-0.2 rounded-full uppercase tracking-wider">
                       Admin
+                    </span>
+                  </button>
+                )}
+
+                {isInstalled ? (
+                  <div
+                    className="w-full px-3.5 py-2 text-left text-xs text-emerald-700 bg-emerald-50/50 flex items-center justify-between cursor-default"
+                    title="DayLedger is installed and active on this device"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      <span className="font-medium">App Installed</span>
+                    </div>
+                    <span className="text-[10px] bg-emerald-100 text-emerald-800 font-semibold px-1.5 py-0.5 rounded-full">
+                      Ready
+                    </span>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setIsUserMenuOpen(false);
+                      triggerInstall();
+                    }}
+                    className="w-full px-3.5 py-2 text-left text-xs text-indigo-700 hover:bg-indigo-50/80 flex items-center justify-between transition-colors cursor-pointer font-medium"
+                    title="Install DayLedger to your device"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Download className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                      <span>Install DayLedger</span>
+                    </div>
+                    <span className="text-[10px] bg-indigo-100 text-indigo-700 font-semibold px-1.5 py-0.5 rounded-full">
+                      {isIPhone ? 'iPhone' : 'App'}
                     </span>
                   </button>
                 )}

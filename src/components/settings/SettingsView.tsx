@@ -20,7 +20,9 @@ import {
   History,
   Sparkles,
   LogOut,
+  Smartphone,
 } from 'lucide-react';
+import { usePwa } from '../../context/PwaContext';
 
 export const SettingsView: React.FC = () => {
   const {
@@ -41,6 +43,8 @@ export const SettingsView: React.FC = () => {
     authLogs,
     clearAuthLogs,
   } = useApp();
+
+  const { isInstalled, isIPhone, triggerInstall } = usePwa();
 
   const [name, setName] = useState(profile.name);
   const [email, setEmail] = useState(profile.email);
@@ -258,6 +262,80 @@ export const SettingsView: React.FC = () => {
                 Crafted following the modern design principles of Linear, Notion, and Apple:
                 8px grid system, rounded-2xl cards, gentle elevation shadows, and micro-interactions.
               </p>
+            </div>
+          </div>
+        </Card>
+
+        {/* Web App & Installation (PWA) Card */}
+        <Card>
+          <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
+            <div className="flex items-center gap-2">
+              <Smartphone className="w-4 h-4 text-indigo-600" />
+              <h3 className="text-sm font-bold text-zinc-900">Web App & Installation (PWA)</h3>
+            </div>
+            {isInstalled ? (
+              <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                Installed
+              </span>
+            ) : (
+              <span className="text-[11px] font-semibold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-200">
+                Ready to Install
+              </span>
+            )}
+          </div>
+
+          <div className="pt-4 space-y-3.5">
+            {isInstalled ? (
+              <div className="p-3 rounded-xl border border-emerald-200/80 bg-emerald-50/40 space-y-1.5">
+                <div className="flex items-center gap-2 text-xs font-bold text-emerald-900">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  <span>DayLedger is running as an installed standalone app</span>
+                </div>
+                <p className="text-[11px] text-zinc-600 leading-relaxed">
+                  App shell, assets, and icons are cached via the service worker. You have full
+                  offline interface availability on this device.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <p className="text-xs text-zinc-600 leading-relaxed">
+                  Install DayLedger to your Home Screen or desktop for quick access, standalone
+                  window mode, and offline cache support.
+                </p>
+
+                <div className="flex items-center justify-between p-3 rounded-xl border border-zinc-200/80 bg-zinc-50/70">
+                  <div className="flex items-center gap-2.5">
+                    <img
+                      src="/icons/icon-192.png"
+                      alt="DayLedger"
+                      className="w-8 h-8 rounded-lg shadow-2xs border border-zinc-200"
+                    />
+                    <div>
+                      <h4 className="text-xs font-bold text-zinc-900">DayLedger Home Screen App</h4>
+                      <p className="text-[11px] text-zinc-500">
+                        {isIPhone ? 'Optimized for iPhone Safari' : 'Fast, native-like experience'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <Button
+                    size="sm"
+                    variant="primary"
+                    icon={<Download className="w-3.5 h-3.5" />}
+                    onClick={triggerInstall}
+                  >
+                    Install DayLedger
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            <div className="text-[11px] text-zinc-500 leading-relaxed bg-zinc-50 p-3 rounded-xl border border-zinc-200/60 space-y-1">
+              <p className="font-semibold text-zinc-700">PWA Specifications:</p>
+              <p>• Web Manifest with standalone display mode and high-resolution maskable icons.</p>
+              <p>• Apple mobile web app metadata for status bar and home screen icon.</p>
+              <p>• Service worker app-shell caching (API requests remain strictly live & un-cached).</p>
             </div>
           </div>
         </Card>

@@ -1,8 +1,10 @@
 import React from 'react';
 import { AppProvider, useApp } from './context/AppContext';
+import { PwaProvider } from './context/PwaContext';
 import { Sidebar } from './components/layout/Sidebar';
 import { TopNavbar } from './components/layout/TopNavbar';
 import { MobileBottomNav } from './components/layout/MobileBottomNav';
+import { PwaInstallModal } from './components/common/PwaInstallModal';
 import { CommandPalette } from './components/layout/CommandPalette';
 import { NotificationDrawer } from './components/layout/NotificationDrawer';
 import { QuickAddMenu } from './components/layout/QuickAddMenu';
@@ -35,6 +37,7 @@ const MainLayout: React.FC = () => {
       <>
         <AuthPage />
         <ToastContainer />
+        <PwaInstallModal />
       </>
     );
   }
@@ -90,6 +93,7 @@ const MainLayout: React.FC = () => {
       <PersonDetailModal />
       <NoteModal />
       <ToastContainer />
+      <PwaInstallModal />
     </div>
   );
 };
@@ -97,7 +101,9 @@ const MainLayout: React.FC = () => {
 export function App() {
   return (
     <AppProvider>
-      <MainLayout />
+      <PwaProvider>
+        <MainLayout />
+      </PwaProvider>
     </AppProvider>
   );
 }

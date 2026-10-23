@@ -10,10 +10,18 @@
     font-family: var(--font-sans);
     background-color: #FAFAF9;
     color: #18181B;
+    min-height: 100vh;
+    min-height: 100dvh;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     -webkit-tap-highlight-color: transparent;
   }
+}
+
+/* Keep the sticky mobile header below the iPhone status bar in Safari/PWA mode. */
+.app-topbar-safe-area {
+  height: calc(4rem + env(safe-area-inset-top, 0px));
+  padding-top: env(safe-area-inset-top, 0px);
 }
 
 /* Safe area padding utilities for mobile phones with bottom home indicators & top notches */

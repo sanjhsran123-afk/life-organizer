@@ -14,7 +14,10 @@ import {
   Sparkles,
   LogOut,
   ShieldCheck,
+  Download,
+  CheckCircle2,
 } from 'lucide-react';
+import { usePwa } from '../../context/PwaContext';
 import { Avatar } from '../common/Avatar';
 
 export const Sidebar: React.FC = () => {
@@ -28,6 +31,8 @@ export const Sidebar: React.FC = () => {
     currentUser,
     logout,
   } = useApp();
+
+  const { isInstalled, isIPhone, triggerInstall } = usePwa();
 
   interface NavItem {
     id: TabType;
@@ -183,6 +188,36 @@ export const Sidebar: React.FC = () => {
             </button>
           );
         })}
+      </div>
+
+      {/* Install PWA Option / Status */}
+      <div className="px-3 pb-2">
+        {isInstalled ? (
+          !sidebarCollapsed && (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-50/70 border border-emerald-100 text-[11px] text-emerald-800 font-medium">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+              <span className="truncate">DayLedger Installed</span>
+            </div>
+          )
+        ) : (
+          <button
+            onClick={triggerInstall}
+            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-indigo-700 bg-indigo-50/80 hover:bg-indigo-100 transition-colors cursor-pointer border border-indigo-100 shadow-2xs ${
+              sidebarCollapsed ? 'justify-center px-2' : ''
+            }`}
+            title="Install DayLedger App"
+          >
+            <Download className="w-4 h-4 text-indigo-600 shrink-0" />
+            {!sidebarCollapsed && (
+              <>
+                <span className="truncate flex-1 text-left">Install DayLedger</span>
+                <span className="text-[10px] bg-indigo-200/60 text-indigo-800 px-1.5 py-0.2 rounded font-bold">
+                  {isIPhone ? 'iOS' : 'PWA'}
+                </span>
+              </>
+            )}
+          </button>
+        )}
       </div>
 
       {/* Quick Summary Pill / User footer */}
