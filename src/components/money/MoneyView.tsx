@@ -90,10 +90,10 @@ export const MoneyView: React.FC = () => {
       {/* Top Header & Quick Action Buttons */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-zinc-900">
+          <h2 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
             Personal Money & Debt Ledger
           </h2>
-          <p className="text-xs text-zinc-500 mt-0.5">
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
             Track money lent to friends, borrowed funds, and incoming repayments.
           </p>
         </div>
@@ -110,7 +110,7 @@ export const MoneyView: React.FC = () => {
 
           <Button
             variant="outline"
-            icon={<ArrowDownLeft className="w-4 h-4 text-amber-700" />}
+            icon={<ArrowDownLeft className="w-4 h-4 text-amber-700 dark:text-amber-400" />}
             onClick={() => openTransactionModal({ initialType: 'BORROWED' })}
             className="w-full sm:w-auto"
           >
@@ -121,74 +121,74 @@ export const MoneyView: React.FC = () => {
 
       {/* Top 4 Summary Metrics Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <div className="p-4 bg-white rounded-2xl border border-zinc-200/80 shadow-xs">
+        <div className="p-4 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+            <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
               Total Lent
             </span>
-            <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
+            <div className="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 flex items-center justify-center">
               <ArrowUpRight className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-xl sm:text-2xl font-bold tracking-tight text-zinc-900 mt-2">
+          <p className="text-xl sm:text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 mt-2">
             {formatCurrency(stats.totalLent, profile.currency)}
           </p>
-          <p className="text-[11px] text-zinc-500 mt-1">Given to other people</p>
+          <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">Given to other people</p>
         </div>
 
-        <div className="p-4 bg-white rounded-2xl border border-zinc-200/80 shadow-xs">
+        <div className="p-4 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+            <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
               Total Borrowed
             </span>
-            <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-800 flex items-center justify-center">
+            <div className="w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-400 flex items-center justify-center">
               <ArrowDownLeft className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-xl sm:text-2xl font-bold tracking-tight text-zinc-900 mt-2">
+          <p className="text-xl sm:text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 mt-2">
             {formatCurrency(stats.totalBorrowed, profile.currency)}
           </p>
-          <p className="text-[11px] text-zinc-500 mt-1">
+          <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">
             {stats.totalPendingBorrowed > 0
               ? `${formatCurrency(stats.totalPendingBorrowed, profile.currency)} to return`
               : 'Cleared'}
           </p>
         </div>
 
-        <div className="p-4 bg-white rounded-2xl border border-zinc-200/80 shadow-xs">
+        <div className="p-4 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+            <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
               Received Back
             </span>
-            <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center">
+            <div className="w-7 h-7 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-400 flex items-center justify-center">
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-xl sm:text-2xl font-bold tracking-tight text-emerald-600 mt-2">
+          <p className="text-xl sm:text-2xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400 mt-2">
             {formatCurrency(stats.totalReceived, profile.currency)}
           </p>
-          <p className="text-[11px] text-zinc-500 mt-1">Recovered loans</p>
+          <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">Recovered loans</p>
         </div>
 
-        <div className="p-4 bg-white rounded-2xl border border-zinc-200/80 shadow-xs">
+        <div className="p-4 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+            <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
               Money Pending
             </span>
-            <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center">
+            <div className="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400 flex items-center justify-center">
               <Clock className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-xl sm:text-2xl font-bold tracking-tight text-amber-800 mt-2">
+          <p className="text-xl sm:text-2xl font-bold tracking-tight text-amber-800 dark:text-amber-400 mt-2">
             {formatCurrency(stats.totalPending, profile.currency)}
           </p>
-          <p className="text-[11px] text-zinc-500 mt-1">Awaiting repayment</p>
+          <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">Awaiting repayment</p>
         </div>
       </div>
 
       {/* Filter Tabs & Search Bar */}
       <div className="space-y-3">
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none border-b border-zinc-200/80">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none border-b border-zinc-200/80 dark:border-zinc-800">
           {(
             [
               { id: 'all', label: 'All Transactions' },
@@ -204,8 +204,8 @@ export const MoneyView: React.FC = () => {
               onClick={() => setFilter(tab.id)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shrink-0 cursor-pointer ${
                 filter === tab.id
-                  ? 'bg-zinc-900 text-white font-semibold shadow-2xs'
-                  : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
+                  ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 font-semibold shadow-2xs'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800'
               }`}
             >
               {tab.label}
@@ -221,23 +221,23 @@ export const MoneyView: React.FC = () => {
               placeholder="Search by person name, reason, or notes..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-white border border-zinc-200/90 rounded-xl text-base sm:text-xs pl-9 pr-3 py-2.5 sm:py-2 min-h-[42px] sm:min-h-0 text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10"
+              className="w-full bg-white dark:bg-zinc-850 border border-zinc-200/90 dark:border-zinc-700 rounded-xl text-base sm:text-xs pl-9 pr-3 py-2.5 sm:py-2 min-h-[42px] sm:min-h-0 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10"
             />
           </div>
 
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="bg-white border border-zinc-200/90 rounded-xl text-base sm:text-xs px-3 py-2.5 sm:py-2 min-h-[42px] sm:min-h-0 text-zinc-700 focus:outline-none focus:border-indigo-500 cursor-pointer"
+            className="bg-white dark:bg-zinc-850 border border-zinc-200/90 dark:border-zinc-700 rounded-xl text-base sm:text-xs px-3 py-2.5 sm:py-2 min-h-[42px] sm:min-h-0 text-zinc-700 dark:text-zinc-200 focus:outline-none focus:border-indigo-500 cursor-pointer"
           >
-            <option value="all">All Categories</option>
-            <option value="Personal">Personal</option>
-            <option value="Friends">Friends</option>
-            <option value="Family">Family</option>
-            <option value="Travel">Travel</option>
-            <option value="Food">Food</option>
-            <option value="College">College</option>
-            <option value="Other">Other</option>
+            <option value="all" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">All Categories</option>
+            <option value="Personal" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">Personal</option>
+            <option value="Friends" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">Friends</option>
+            <option value="Family" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">Family</option>
+            <option value="Travel" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">Travel</option>
+            <option value="Food" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">Food</option>
+            <option value="College" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">College</option>
+            <option value="Other" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">Other</option>
           </select>
         </div>
       </div>
@@ -265,8 +265,8 @@ export const MoneyView: React.FC = () => {
             return (
               <div
                 key={tx.id}
-                className={`p-4 bg-white rounded-2xl border transition-all duration-150 shadow-2xs hover:border-zinc-300 ${
-                  isSettled ? 'border-zinc-200/60 bg-zinc-50/40' : 'border-zinc-200/80'
+                className={`p-4 bg-white dark:bg-zinc-900 rounded-2xl border transition-all duration-150 shadow-2xs hover:border-zinc-300 dark:hover:border-zinc-700 ${
+                  isSettled ? 'border-zinc-200/60 dark:border-zinc-800/80 bg-zinc-50/40 dark:bg-zinc-850/40' : 'border-zinc-200/80 dark:border-zinc-800'
                 }`}
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -275,8 +275,8 @@ export const MoneyView: React.FC = () => {
                     <div
                       className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
                         isLent
-                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/60'
-                          : 'bg-amber-50 text-amber-800 border border-amber-200/60'
+                          ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60'
+                          : 'bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-400 border border-amber-200/60 dark:border-amber-800/60'
                       }`}
                     >
                       {isLent ? (
@@ -290,7 +290,7 @@ export const MoneyView: React.FC = () => {
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => openPersonDetail(tx.personId)}
-                          className="text-sm font-bold text-zinc-900 hover:text-indigo-600 transition-colors cursor-pointer text-left truncate"
+                          className="text-sm font-bold text-zinc-900 dark:text-zinc-100 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer text-left truncate"
                         >
                           {tx.personName}
                         </button>
@@ -303,22 +303,22 @@ export const MoneyView: React.FC = () => {
                       </div>
 
                       {tx.notes && (
-                        <p className="text-xs text-zinc-600 mt-1 leading-relaxed">
+                        <p className="text-xs text-zinc-600 dark:text-zinc-300 mt-1 leading-relaxed">
                           "{tx.notes}"
                         </p>
                       )}
 
-                      <div className="flex flex-wrap items-center gap-3 text-[11px] text-zinc-500 mt-2">
+                      <div className="flex flex-wrap items-center gap-3 text-[11px] text-zinc-500 dark:text-zinc-400 mt-2">
                         <span>Given on: {formatDate(tx.date)}</span>
                         <span>•</span>
                         <span>
                           Expected:{' '}
-                          <strong className={overdue ? 'text-rose-600 font-semibold' : 'text-zinc-700'}>
+                          <strong className={overdue ? 'text-rose-600 dark:text-rose-400 font-semibold' : 'text-zinc-700 dark:text-zinc-300'}>
                             {formatDate(tx.expectedReturnDate)}
                           </strong>
                         </span>
                         {overdue && (
-                          <span className="text-rose-700 font-bold bg-rose-50 px-1.5 py-0.2 rounded border border-rose-200">
+                          <span className="text-rose-700 dark:text-rose-400 font-bold bg-rose-50 dark:bg-rose-950/40 px-1.5 py-0.2 rounded border border-rose-200 dark:border-rose-900/50">
                             Overdue by {daysOverdue} {daysOverdue === 1 ? 'day' : 'days'}
                           </span>
                         )}
@@ -327,20 +327,20 @@ export const MoneyView: React.FC = () => {
                   </div>
 
                   {/* Right: Amounts & Settlement Actions */}
-                  <div className="flex flex-col sm:items-end justify-between sm:justify-center gap-2.5 shrink-0 pt-2.5 sm:pt-0 border-t sm:border-t-0 border-zinc-100">
+                  <div className="flex flex-col sm:items-end justify-between sm:justify-center gap-2.5 shrink-0 pt-2.5 sm:pt-0 border-t sm:border-t-0 border-zinc-100 dark:border-zinc-800">
                     <div className="flex items-baseline justify-between sm:block sm:text-right w-full sm:w-auto">
-                      <div className="text-base sm:text-lg font-bold text-zinc-900">
+                      <div className="text-base sm:text-lg font-bold text-zinc-900 dark:text-zinc-100">
                         {formatCurrency(tx.amount, profile.currency)}
                       </div>
-                      <div className="text-[11px] text-zinc-500">
+                      <div className="text-[11px] text-zinc-500 dark:text-zinc-400">
                         {isSettled ? (
-                          <span className="text-emerald-600 font-semibold">Fully Settled</span>
+                          <span className="text-emerald-600 dark:text-emerald-400 font-semibold">Fully Settled</span>
                         ) : tx.paidAmount > 0 ? (
-                          <span className="text-purple-600 font-medium">
+                          <span className="text-purple-600 dark:text-purple-400 font-medium">
                             {formatCurrency(tx.paidAmount, profile.currency)} paid • {formatCurrency(remaining, profile.currency)} left
                           </span>
                         ) : (
-                          <span className="text-amber-800 font-medium">
+                          <span className="text-amber-800 dark:text-amber-400 font-medium">
                             {formatCurrency(remaining, profile.currency)} pending
                           </span>
                         )}
@@ -349,7 +349,7 @@ export const MoneyView: React.FC = () => {
 
                     {/* Progress bar if partially paid */}
                     {tx.paidAmount > 0 && !isSettled && (
-                      <div className="w-full sm:w-28 h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+                      <div className="w-full sm:w-28 h-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
                         <div
                           className="bg-emerald-500 h-full rounded-full"
                           style={{ width: `${progressPct}%` }}
@@ -373,7 +373,7 @@ export const MoneyView: React.FC = () => {
                       <div className="flex items-center gap-1 shrink-0">
                         <button
                           onClick={() => openTransactionModal({ transaction: tx })}
-                          className="p-2 sm:p-1.5 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 rounded-lg transition-colors cursor-pointer"
+                          className="p-2 sm:p-1.5 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors cursor-pointer"
                           title="Edit transaction"
                           aria-label="Edit transaction"
                         >
@@ -382,7 +382,7 @@ export const MoneyView: React.FC = () => {
 
                         <button
                           onClick={() => setTxToDelete(tx)}
-                          className="p-2 sm:p-1.5 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                          className="p-2 sm:p-1.5 text-zinc-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors cursor-pointer"
                           title="Delete transaction"
                           aria-label="Delete transaction"
                         >
@@ -395,19 +395,19 @@ export const MoneyView: React.FC = () => {
 
                 {/* Payment History Log if any repayments occurred */}
                 {tx.paymentHistory && tx.paymentHistory.length > 0 && (
-                  <div className="mt-3 pt-2.5 border-t border-zinc-100 bg-zinc-50/50 p-2.5 rounded-xl space-y-1">
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-600 block">
+                  <div className="mt-3 pt-2.5 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/40 p-2.5 rounded-xl space-y-1">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-600 dark:text-zinc-400 block">
                       Repayment Receipts
                     </span>
                     {tx.paymentHistory.map((pay) => (
                       <div
                         key={pay.id}
-                        className="flex items-center justify-between text-xs text-zinc-600"
+                        className="flex items-center justify-between text-xs text-zinc-600 dark:text-zinc-300"
                       >
                         <span>
                           {formatDate(pay.date)} • {pay.note || 'Repayment'}
                         </span>
-                        <span className="font-semibold text-emerald-600">
+                        <span className="font-semibold text-emerald-600 dark:text-emerald-400">
                           +{formatCurrency(pay.amount, profile.currency)}
                         </span>
                       </div>

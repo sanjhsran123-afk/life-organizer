@@ -16,11 +16,11 @@ export const TodayTasksWidget: React.FC = () => {
 
   return (
     <Card className="flex flex-col h-full">
-      <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
+      <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800">
         <div className="flex items-center gap-2">
-          <CheckSquare className="w-4 h-4 text-indigo-600" />
-          <h3 className="text-sm font-bold text-zinc-900 tracking-tight">Today's Tasks</h3>
-          <span className="text-xs bg-zinc-100 text-zinc-600 px-2 py-0.5 rounded-full font-medium">
+          <CheckSquare className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+          <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">Today's Tasks</h3>
+          <span className="text-xs bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 px-2 py-0.5 rounded-full font-medium">
             {todayTasks.filter((t) => t.status !== 'completed').length} left
           </span>
         </div>
@@ -37,7 +37,7 @@ export const TodayTasksWidget: React.FC = () => {
             size="xs"
             variant="ghost"
             onClick={() => setActiveTab('tasks')}
-            className="text-zinc-400 hover:text-zinc-700"
+            className="text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
           >
             View all →
           </Button>
@@ -48,8 +48,8 @@ export const TodayTasksWidget: React.FC = () => {
         {displayTasks.length === 0 ? (
           <div className="py-8 text-center">
             <span className="text-2xl block mb-1">🎉</span>
-            <p className="text-xs font-semibold text-zinc-800">No tasks for today</p>
-            <p className="text-[11px] text-zinc-500 mt-0.5">Enjoy your free time or plan ahead.</p>
+            <p className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">No tasks for today</p>
+            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">Enjoy your free time or plan ahead.</p>
           </div>
         ) : (
           displayTasks.map((task) => {
@@ -66,8 +66,8 @@ export const TodayTasksWidget: React.FC = () => {
                 key={task.id}
                 className={`flex items-start gap-3 p-2.5 rounded-xl border transition-all duration-150 ${
                   isDone
-                    ? 'bg-zinc-50/60 border-zinc-200/50 opacity-60'
-                    : 'bg-white border-zinc-200/70 hover:border-zinc-300 shadow-2xs'
+                    ? 'bg-zinc-50/60 dark:bg-zinc-800/40 border-zinc-200/50 dark:border-zinc-800/50 opacity-60'
+                    : 'bg-white dark:bg-zinc-900/60 border-zinc-200/70 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 shadow-2xs'
                 }`}
               >
                 {/* Custom animated checkbox */}
@@ -77,7 +77,7 @@ export const TodayTasksWidget: React.FC = () => {
                   className={`mt-0.5 w-4.5 h-4.5 rounded-md border flex items-center justify-center transition-all cursor-pointer ${
                     isDone
                       ? 'bg-emerald-600 border-emerald-600 text-white'
-                      : 'border-zinc-300 hover:border-indigo-500 bg-white'
+                      : 'border-zinc-300 dark:border-zinc-600 hover:border-indigo-500 dark:hover:border-indigo-400 bg-white dark:bg-zinc-800'
                   }`}
                   aria-label={isDone ? 'Mark incomplete' : 'Mark complete'}
                 >
@@ -91,7 +91,7 @@ export const TodayTasksWidget: React.FC = () => {
                   <div className="flex items-center justify-between gap-2">
                     <p
                       className={`text-xs font-semibold truncate ${
-                        isDone ? 'line-through text-zinc-400' : 'text-zinc-900'
+                        isDone ? 'line-through text-zinc-400 dark:text-zinc-500' : 'text-zinc-900 dark:text-zinc-100'
                       }`}
                     >
                       {task.title}
@@ -101,12 +101,12 @@ export const TodayTasksWidget: React.FC = () => {
                     </Badge>
                   </div>
                   {task.description && (
-                    <p className="text-[11px] text-zinc-500 line-clamp-1 mt-0.5">
+                    <p className="text-[11px] text-zinc-500 dark:text-zinc-400 line-clamp-1 mt-0.5">
                       {task.description}
                     </p>
                   )}
-                  <div className="flex items-center gap-2 mt-1 text-[11px] text-zinc-400">
-                    <span className="text-zinc-500 font-medium">{task.category}</span>
+                  <div className="flex items-center gap-2 mt-1 text-[11px] text-zinc-400 dark:text-zinc-500">
+                    <span className="text-zinc-500 dark:text-zinc-400 font-medium">{task.category}</span>
                     <span>•</span>
                     <span>{formatDate(task.dueDate)}</span>
                   </div>
@@ -117,11 +117,11 @@ export const TodayTasksWidget: React.FC = () => {
         )}
       </div>
 
-      <div className="pt-2 border-t border-zinc-100 flex items-center justify-between text-[11px] text-zinc-500">
+      <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between text-[11px] text-zinc-500 dark:text-zinc-400">
         <span>Click checkbox to mark done</span>
         <button
           onClick={() => setActiveTab('tasks')}
-          className="text-indigo-600 hover:underline font-medium flex items-center gap-1 cursor-pointer"
+          className="text-indigo-600 dark:text-indigo-400 hover:underline font-medium flex items-center gap-1 cursor-pointer"
         >
           Open full task board <ArrowRight className="w-3 h-3" />
         </button>

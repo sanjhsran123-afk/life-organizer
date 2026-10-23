@@ -38,30 +38,30 @@ export const ActivityView: React.FC = () => {
   const getIcon = (type: string) => {
     switch (type) {
       case 'task':
-        return <CheckSquare className="w-4 h-4 text-indigo-600" />;
+        return <CheckSquare className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />;
       case 'money':
-        return <WalletCards className="w-4 h-4 text-emerald-600" />;
+        return <WalletCards className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />;
       case 'note':
-        return <FileText className="w-4 h-4 text-purple-600" />;
+        return <FileText className="w-4 h-4 text-purple-600 dark:text-purple-400" />;
       case 'person':
-        return <UserPlus className="w-4 h-4 text-sky-600" />;
+        return <UserPlus className="w-4 h-4 text-sky-600 dark:text-sky-400" />;
       default:
-        return <Activity className="w-4 h-4 text-zinc-500" />;
+        return <Activity className="w-4 h-4 text-zinc-500 dark:text-zinc-400" />;
     }
   };
 
   const getBgColor = (type: string) => {
     switch (type) {
       case 'task':
-        return 'bg-indigo-50 border-indigo-200/60';
+        return 'bg-indigo-50 border-indigo-200/60 dark:bg-indigo-950/40 dark:border-indigo-900/50';
       case 'money':
-        return 'bg-emerald-50 border-emerald-200/60';
+        return 'bg-emerald-50 border-emerald-200/60 dark:bg-emerald-950/40 dark:border-emerald-900/50';
       case 'note':
-        return 'bg-purple-50 border-purple-200/60';
+        return 'bg-purple-50 border-purple-200/60 dark:bg-purple-950/40 dark:border-purple-900/50';
       case 'person':
-        return 'bg-sky-50 border-sky-200/60';
+        return 'bg-sky-50 border-sky-200/60 dark:bg-sky-950/40 dark:border-sky-900/50';
       default:
-        return 'bg-zinc-50 border-zinc-200/60';
+        return 'bg-zinc-50 border-zinc-200/60 dark:bg-zinc-800 dark:border-zinc-700';
     }
   };
 
@@ -69,14 +69,14 @@ export const ActivityView: React.FC = () => {
     <div className="space-y-6">
       {/* Top Header */}
       <div>
-        <h2 className="text-xl font-bold tracking-tight text-zinc-900">Activity Timeline</h2>
-        <p className="text-xs text-zinc-500 mt-0.5">
+        <h2 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">Activity Timeline</h2>
+        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
           Audit trail of tasks completed, repayments recorded, notes updated, and contacts added.
         </p>
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none border-b border-zinc-200/80">
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none border-b border-zinc-200/80 dark:border-zinc-800">
         {(
           [
             { id: 'all', label: 'All Activities' },
@@ -91,8 +91,8 @@ export const ActivityView: React.FC = () => {
             onClick={() => setFilter(tab.id)}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shrink-0 cursor-pointer ${
               filter === tab.id
-                ? 'bg-zinc-900 text-white font-semibold shadow-2xs'
-                : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
+                ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 font-semibold shadow-2xs'
+                : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800'
             }`}
           >
             {tab.label}
@@ -111,15 +111,15 @@ export const ActivityView: React.FC = () => {
         <div className="space-y-6">
           {Object.entries(groupedActivities).map(([dateKey, items]) => (
             <div key={dateKey} className="space-y-2.5">
-              <div className="flex items-center gap-2 text-xs font-semibold text-zinc-500 px-1">
-                <Calendar className="w-3.5 h-3.5 text-zinc-400" />
+              <div className="flex items-center gap-2 text-xs font-semibold text-zinc-500 dark:text-zinc-400 px-1">
+                <Calendar className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500" />
                 <span>{formatRelativeDate(dateKey)}</span>
-                <span className="text-[10px] text-zinc-400 font-normal">
+                <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-normal">
                   ({formatDate(dateKey)})
                 </span>
               </div>
 
-              <div className="bg-white rounded-2xl border border-zinc-200/80 shadow-xs divide-y divide-zinc-100 overflow-hidden">
+              <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 shadow-xs divide-y divide-zinc-100 dark:divide-zinc-800 overflow-hidden">
                 {items.map((act) => {
                   let timeStr = '';
                   try {
@@ -134,7 +134,7 @@ export const ActivityView: React.FC = () => {
                   return (
                     <div
                       key={act.id}
-                      className="flex items-start gap-3.5 p-3.5 sm:px-4 hover:bg-zinc-50/60 transition-colors"
+                      className="flex items-start gap-3.5 p-3.5 sm:px-4 hover:bg-zinc-50/60 dark:hover:bg-zinc-800/40 transition-colors"
                     >
                       <div
                         className={`w-8 h-8 rounded-xl border flex items-center justify-center shrink-0 mt-0.5 ${getBgColor(
@@ -146,17 +146,17 @@ export const ActivityView: React.FC = () => {
 
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-center justify-between gap-1">
-                          <span className="text-xs font-semibold text-zinc-900">
+                          <span className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
                             {act.action}
                           </span>
                           {timeStr && (
-                            <span className="text-[11px] text-zinc-400 flex items-center gap-1 shrink-0">
-                              <Clock className="w-3 h-3 text-zinc-300" />
+                            <span className="text-[11px] text-zinc-400 dark:text-zinc-500 flex items-center gap-1 shrink-0">
+                              <Clock className="w-3 h-3 text-zinc-300 dark:text-zinc-600" />
                               {timeStr}
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-zinc-600 mt-0.5 leading-relaxed">
+                        <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-0.5 leading-relaxed">
                           {act.description}
                         </p>
                       </div>

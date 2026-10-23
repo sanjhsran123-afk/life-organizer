@@ -1,4 +1,5 @@
 import React from 'react';
+import { ThemeProvider } from './context/ThemeContext';
 import { AppProvider, useApp } from './context/AppContext';
 import { PwaProvider } from './context/PwaContext';
 import { Sidebar } from './components/layout/Sidebar';
@@ -66,7 +67,7 @@ const MainLayout: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAFAF9] flex flex-col md:flex-row text-zinc-900 font-sans selection:bg-indigo-100 selection:text-indigo-900">
+    <div className="min-h-screen bg-[#FAFAF9] dark:bg-[#09090B] flex flex-col md:flex-row text-zinc-900 dark:text-zinc-100 font-sans selection:bg-indigo-100 dark:selection:bg-indigo-950 selection:text-indigo-900 dark:selection:text-indigo-200 transition-colors duration-150">
       {/* Desktop / Tablet Sidebar */}
       <Sidebar />
 
@@ -100,11 +101,13 @@ const MainLayout: React.FC = () => {
 
 export function App() {
   return (
-    <AppProvider>
-      <PwaProvider>
-        <MainLayout />
-      </PwaProvider>
-    </AppProvider>
+    <ThemeProvider>
+      <AppProvider>
+        <PwaProvider>
+          <MainLayout />
+        </PwaProvider>
+      </AppProvider>
+    </ThemeProvider>
   );
 }
 

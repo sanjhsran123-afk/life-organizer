@@ -221,13 +221,13 @@ export const AdminPanel: React.FC = () => {
   return (
     <div className="flex flex-col md:flex-row gap-4 sm:gap-6 min-h-[calc(100vh-10rem)] animate-fade-in">
       {/* Mobile Sub-Navigation Tabs */}
-      <div className="md:hidden flex items-center gap-1.5 overflow-x-auto p-1.5 bg-white rounded-2xl border border-zinc-200/80 shadow-2xs scrollbar-none">
+      <div className="md:hidden flex items-center gap-1.5 overflow-x-auto p-1.5 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 shadow-2xs scrollbar-none">
         <button
           onClick={() => setCurrentSubTab('overview')}
           className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold shrink-0 transition-all cursor-pointer ${
             currentSubTab === 'overview'
-              ? 'bg-indigo-50 text-indigo-700 shadow-2xs'
-              : 'text-zinc-600 hover:text-zinc-900'
+              ? 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 shadow-2xs'
+              : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
           }`}
         >
           <LayoutDashboard className="w-4 h-4 shrink-0" />
@@ -238,8 +238,8 @@ export const AdminPanel: React.FC = () => {
           onClick={() => setCurrentSubTab('users')}
           className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold shrink-0 transition-all cursor-pointer ${
             currentSubTab === 'users'
-              ? 'bg-indigo-50 text-indigo-700 shadow-2xs'
-              : 'text-zinc-600 hover:text-zinc-900'
+              ? 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 shadow-2xs'
+              : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
           }`}
         >
           <Users className="w-4 h-4 shrink-0" />
@@ -250,8 +250,8 @@ export const AdminPanel: React.FC = () => {
           onClick={() => setCurrentSubTab('activity')}
           className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold shrink-0 transition-all cursor-pointer ${
             currentSubTab === 'activity'
-              ? 'bg-indigo-50 text-indigo-700 shadow-2xs'
-              : 'text-zinc-600 hover:text-zinc-900'
+              ? 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 shadow-2xs'
+              : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
           }`}
         >
           <Activity className="w-4 h-4 shrink-0" />
@@ -260,7 +260,7 @@ export const AdminPanel: React.FC = () => {
 
         <button
           onClick={() => setActiveTab('overview')}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-zinc-500 hover:text-zinc-800 shrink-0 ml-auto cursor-pointer"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 shrink-0 ml-auto cursor-pointer"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Exit</span>
@@ -268,18 +268,18 @@ export const AdminPanel: React.FC = () => {
       </div>
 
       {/* Desktop Admin Left Navigation Sidebar */}
-      <aside className="hidden md:flex w-60 shrink-0 bg-white rounded-2xl border border-zinc-200/80 p-3 shadow-2xs flex-col justify-between">
+      <aside className="hidden md:flex w-60 shrink-0 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 p-3 shadow-2xs flex-col justify-between">
         <div className="space-y-1">
           {/* Admin Header Tag */}
-          <div className="px-3 py-3 border-b border-zinc-100 mb-2 flex items-center gap-2.5">
+          <div className="px-3 py-3 border-b border-zinc-100 dark:border-zinc-800 mb-2 flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white shadow-2xs">
               <Shield className="w-4 h-4" />
             </div>
             <div>
-              <span className="text-xs font-bold text-zinc-900 block leading-tight">
+              <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 block leading-tight">
                 Admin Console
               </span>
-              <span className="text-[10px] text-zinc-600 font-medium uppercase tracking-wider">
+              <span className="text-[10px] text-zinc-600 dark:text-zinc-400 font-medium uppercase tracking-wider">
                 Control Plane
               </span>
             </div>
@@ -290,8 +290,8 @@ export const AdminPanel: React.FC = () => {
             onClick={() => setCurrentSubTab('overview')}
             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               currentSubTab === 'overview'
-                ? 'bg-indigo-50 text-indigo-700 shadow-2xs'
-                : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100/70'
+                ? 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 shadow-2xs'
+                : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100/70 dark:hover:bg-zinc-800/70'
             }`}
           >
             <LayoutDashboard className="w-4 h-4 shrink-0" />
@@ -302,8 +302,8 @@ export const AdminPanel: React.FC = () => {
             onClick={() => setCurrentSubTab('users')}
             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               currentSubTab === 'users'
-                ? 'bg-indigo-50 text-indigo-700 shadow-2xs'
-                : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100/70'
+                ? 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 shadow-2xs'
+                : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100/70 dark:hover:bg-zinc-800/70'
             }`}
           >
             <Users className="w-4 h-4 shrink-0" />
@@ -314,8 +314,8 @@ export const AdminPanel: React.FC = () => {
             onClick={() => setCurrentSubTab('activity')}
             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               currentSubTab === 'activity'
-                ? 'bg-indigo-50 text-indigo-700 shadow-2xs'
-                : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100/70'
+                ? 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 shadow-2xs'
+                : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100/70 dark:hover:bg-zinc-800/70'
             }`}
           >
             <Activity className="w-4 h-4 shrink-0" />
@@ -324,10 +324,10 @@ export const AdminPanel: React.FC = () => {
         </div>
 
         {/* Bottom Navigation Utilities */}
-        <div className="pt-3 border-t border-zinc-100 space-y-1">
+        <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800 space-y-1">
           <button
             onClick={() => setActiveTab('overview')}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100/70 transition-colors cursor-pointer"
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100/70 dark:hover:bg-zinc-800/70 transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Back to DayLedger</span>
@@ -335,7 +335,7 @@ export const AdminPanel: React.FC = () => {
 
           <button
             onClick={logout}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
           >
             <LogOut className="w-4 h-4" />
             <span>Sign Out</span>
@@ -346,14 +346,14 @@ export const AdminPanel: React.FC = () => {
       {/* Main Admin Content Body */}
       <div className="flex-1 min-w-0 flex flex-col space-y-4">
         {/* Top Bar Header */}
-        <div className="bg-white rounded-2xl border border-zinc-200/80 px-5 py-3.5 shadow-2xs flex flex-wrap items-center justify-between gap-3">
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 px-5 py-3.5 shadow-2xs flex flex-wrap items-center justify-between gap-3">
           {/* Breadcrumb & Section Name */}
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-zinc-600 uppercase tracking-wider">
+            <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">
               Administration
             </span>
-            <span className="text-zinc-300">/</span>
-            <span className="text-xs font-bold text-zinc-900 capitalize">
+            <span className="text-zinc-300 dark:text-zinc-700">/</span>
+            <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 capitalize">
               {currentSubTab === 'overview'
                 ? 'System Overview'
                 : currentSubTab === 'users'
@@ -365,12 +365,12 @@ export const AdminPanel: React.FC = () => {
           {/* Top Bar Actions & Admin Badge */}
           <div className="flex items-center gap-3 shrink-0">
             {/* Live Indicator */}
-            <div className="flex items-center gap-1.5 text-[11px] text-zinc-600 bg-zinc-50 border border-zinc-200/80 px-2.5 py-1 rounded-full">
+            <div className="flex items-center gap-1.5 text-[11px] text-zinc-600 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200/80 dark:border-zinc-700/80 px-2.5 py-1 rounded-full">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               <span>Live MongoDB: {lastUpdatedDisplay}</span>
               <button
                 onClick={handleManualRefresh}
-                className="ml-1 text-zinc-400 hover:text-zinc-700 cursor-pointer"
+                className="ml-1 text-zinc-400 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-200 cursor-pointer"
                 title="Refresh now"
               >
                 <RefreshCw className="w-3 h-3" />
@@ -378,13 +378,13 @@ export const AdminPanel: React.FC = () => {
             </div>
 
             {/* Administrator Account Badge */}
-            <div className="flex items-center gap-2 pl-2 border-l border-zinc-200">
+            <div className="flex items-center gap-2 pl-2 border-l border-zinc-200 dark:border-zinc-700">
               <Avatar name={currentUser.name} size="sm" />
               <div className="hidden sm:flex flex-col text-left">
-                <span className="text-xs font-bold text-zinc-900 leading-tight">
+                <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 leading-tight">
                   {currentUser.name}
                 </span>
-                <span className="text-[10px] font-semibold text-purple-700 flex items-center gap-0.5">
+                <span className="text-[10px] font-semibold text-purple-700 dark:text-purple-400 flex items-center gap-0.5">
                   <ShieldCheck className="w-2.5 h-2.5" /> Administrator
                 </span>
               </div>
@@ -394,14 +394,14 @@ export const AdminPanel: React.FC = () => {
 
         {/* Global Error Banner */}
         {globalError && (
-          <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-xs text-rose-800 flex items-center justify-between gap-3">
+          <div className="p-4 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 rounded-2xl text-xs text-rose-800 dark:text-rose-300 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-600 dark:text-rose-400" />
               <span>{globalError}</span>
             </div>
             <button
               onClick={handleManualRefresh}
-              className="px-2.5 py-1 rounded-lg bg-rose-100 hover:bg-rose-200 text-rose-900 font-semibold transition-colors cursor-pointer"
+              className="px-2.5 py-1 rounded-lg bg-rose-100 dark:bg-rose-900/50 hover:bg-rose-200 dark:hover:bg-rose-900/70 text-rose-900 dark:text-rose-200 font-semibold transition-colors cursor-pointer"
             >
               Retry
             </button>

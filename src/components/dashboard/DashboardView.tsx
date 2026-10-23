@@ -30,12 +30,12 @@ export const DashboardView: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Top Welcome & Quick Actions Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 sm:p-6 rounded-2xl border border-zinc-200/70 shadow-xs">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-zinc-900 p-5 sm:p-6 rounded-2xl border border-zinc-200/70 dark:border-zinc-800 shadow-xs">
         <div>
-          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-zinc-900">
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
             {greeting}, {profile.name} <span className="inline-block animate-bounce">👋</span>
           </h2>
-          <p className="text-xs sm:text-sm text-zinc-500 mt-0.5">
+          <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
             Here’s what’s happening with your agenda, tasks, and money today.
           </p>
         </div>

@@ -33,35 +33,35 @@ export const Badge: React.FC<BadgeProps> = ({
 
   const variantStyles: Record<BadgeVariant, { container: string; dot: string }> = {
     default: {
-      container: 'bg-zinc-100 text-zinc-700 border border-zinc-200/60',
+      container: 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200/60 dark:border-zinc-700',
       dot: 'bg-zinc-500',
     },
     neutral: {
-      container: 'bg-stone-100 text-stone-600 border border-stone-200/50',
+      container: 'bg-stone-100 dark:bg-zinc-800 text-stone-600 dark:text-zinc-400 border border-stone-200/50 dark:border-zinc-700/60',
       dot: 'bg-stone-400',
     },
     primary: {
-      container: 'bg-indigo-50 text-indigo-700 border border-indigo-200/60',
+      container: 'bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-900/50',
       dot: 'bg-indigo-500',
     },
     success: {
-      container: 'bg-emerald-50 text-emerald-700 border border-emerald-200/60',
+      container: 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-900/50',
       dot: 'bg-emerald-500',
     },
     warning: {
-      container: 'bg-amber-50 text-amber-800 border border-amber-200/70',
+      container: 'bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-200/70 dark:border-amber-900/50',
       dot: 'bg-amber-500',
     },
     danger: {
-      container: 'bg-rose-50 text-rose-700 border border-rose-200/60',
+      container: 'bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border border-rose-200/60 dark:border-rose-900/50',
       dot: 'bg-rose-500',
     },
     purple: {
-      container: 'bg-purple-50 text-purple-700 border border-purple-200/60',
+      container: 'bg-purple-50 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 border border-purple-200/60 dark:border-purple-900/50',
       dot: 'bg-purple-500',
     },
     sky: {
-      container: 'bg-sky-50 text-sky-700 border border-sky-200/60',
+      container: 'bg-sky-50 dark:bg-sky-950/50 text-sky-700 dark:text-sky-300 border border-sky-200/60 dark:border-sky-900/50',
       dot: 'bg-sky-500',
     },
   };

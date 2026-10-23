@@ -57,28 +57,28 @@ export const Modal: React.FC<ModalProps> = ({
 
       {/* Modal Dialog */}
       <div
-        className={`relative w-full ${maxWidthStyles[maxWidth]} bg-white rounded-t-3xl sm:rounded-2xl border border-zinc-200/90 shadow-popover z-10 animate-pop-in flex flex-col max-h-[92dvh] sm:max-h-[88vh] overflow-hidden`}
+        className={`relative w-full ${maxWidthStyles[maxWidth]} bg-white dark:bg-zinc-900 rounded-t-3xl sm:rounded-2xl border border-zinc-200/90 dark:border-zinc-800 shadow-popover z-10 animate-pop-in flex flex-col max-h-[92dvh] sm:max-h-[88vh] overflow-hidden`}
         role="dialog"
         aria-modal="true"
       >
         {/* Mobile Pull Handle */}
-        <div className="sm:hidden w-10 h-1 bg-zinc-300 rounded-full mx-auto mt-2.5 mb-1 shrink-0" />
+        <div className="sm:hidden w-10 h-1 bg-zinc-300 dark:bg-zinc-700 rounded-full mx-auto mt-2.5 mb-1 shrink-0" />
 
         {(title || showCloseButton) && (
-          <div className="flex items-start justify-between px-5 sm:px-6 pt-2.5 sm:pt-5 pb-3 sm:pb-4 border-b border-zinc-100 shrink-0">
+          <div className="flex items-start justify-between px-5 sm:px-6 pt-2.5 sm:pt-5 pb-3 sm:pb-4 border-b border-zinc-100 dark:border-zinc-800 shrink-0">
             <div className="min-w-0 pr-2">
               {title && (
-                <h3 className="text-sm sm:text-base font-bold text-zinc-900 tracking-tight truncate">
+                <h3 className="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 tracking-tight truncate">
                   {title}
                 </h3>
               )}
-              {subtitle && <p className="text-xs text-zinc-500 mt-0.5 line-clamp-2">{subtitle}</p>}
+              {subtitle && <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 line-clamp-2">{subtitle}</p>}
             </div>
             {showCloseButton && (
               <button
                 type="button"
                 onClick={onClose}
-                className="text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 p-2 sm:p-1.5 rounded-lg transition-colors cursor-pointer shrink-0"
+                className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 p-2 sm:p-1.5 rounded-lg transition-colors cursor-pointer shrink-0"
                 aria-label="Close modal"
               >
                 <X className="w-4 h-4" />

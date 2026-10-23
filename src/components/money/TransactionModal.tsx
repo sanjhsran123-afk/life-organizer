@@ -192,17 +192,17 @@ export const TransactionModal: React.FC = () => {
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Type toggle switch (if creating new) */}
         {!isEditing && (
-          <div className="grid grid-cols-2 gap-2 p-1 bg-zinc-100 rounded-xl">
+          <div className="grid grid-cols-2 gap-2 p-1 bg-zinc-100 dark:bg-zinc-800 rounded-xl">
             <button
               type="button"
               onClick={() => setType('LENT')}
               className={`flex items-center justify-center gap-2 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
                 type === 'LENT'
-                  ? 'bg-white text-zinc-900 shadow-2xs'
-                  : 'text-zinc-600 hover:text-zinc-900'
+                  ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-2xs'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
               }`}
             >
-              <ArrowUpRight className="w-3.5 h-3.5 text-emerald-600" />
+              <ArrowUpRight className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
               I Lent Money
             </button>
             <button
@@ -210,11 +210,11 @@ export const TransactionModal: React.FC = () => {
               onClick={() => setType('BORROWED')}
               className={`flex items-center justify-center gap-2 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
                 type === 'BORROWED'
-                  ? 'bg-white text-zinc-900 shadow-2xs'
-                  : 'text-zinc-600 hover:text-zinc-900'
+                  ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-2xs'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
               }`}
             >
-              <ArrowDownLeft className="w-3.5 h-3.5 text-amber-700" />
+              <ArrowDownLeft className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" />
               I Borrowed Money
             </button>
           </div>

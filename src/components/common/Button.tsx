@@ -33,13 +33,13 @@ export const Button: React.FC<ButtonProps> = ({
     primary:
       'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white shadow-xs focus-visible:ring-indigo-500 border border-indigo-600/20 active:scale-[0.98]',
     secondary:
-      'bg-zinc-100 hover:bg-zinc-200/80 active:bg-zinc-200 text-zinc-800 focus-visible:ring-zinc-400 border border-zinc-200/60 active:scale-[0.98]',
+      'bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200/80 dark:hover:bg-zinc-700 active:bg-zinc-200 dark:active:bg-zinc-650 text-zinc-800 dark:text-zinc-200 focus-visible:ring-zinc-400 dark:focus-visible:ring-zinc-600 border border-zinc-200/60 dark:border-zinc-700/60 active:scale-[0.98]',
     outline:
-      'bg-white hover:bg-zinc-50 active:bg-zinc-100 text-zinc-700 border border-zinc-200/80 shadow-xs focus-visible:ring-zinc-300 active:scale-[0.98]',
+      'bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 active:bg-zinc-100 dark:active:bg-zinc-750 text-zinc-700 dark:text-zinc-300 border border-zinc-200/80 dark:border-zinc-700 shadow-xs focus-visible:ring-zinc-300 dark:focus-visible:ring-zinc-600 active:scale-[0.98]',
     ghost:
-      'bg-transparent hover:bg-zinc-100 active:bg-zinc-200/60 text-zinc-600 hover:text-zinc-900 focus-visible:ring-zinc-300',
+      'bg-transparent hover:bg-zinc-100 dark:hover:bg-zinc-800 active:bg-zinc-200/60 dark:active:bg-zinc-700 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 focus-visible:ring-zinc-300 dark:focus-visible:ring-zinc-600',
     danger:
-      'bg-rose-50 hover:bg-rose-100 active:bg-rose-200/80 text-rose-700 border border-rose-200/70 focus-visible:ring-rose-400 active:scale-[0.98]',
+      'bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/50 active:bg-rose-200/80 dark:active:bg-rose-900/70 text-rose-700 dark:text-rose-300 border border-rose-200/70 dark:border-rose-900/60 focus-visible:ring-rose-400 active:scale-[0.98]',
   };
 
   return (

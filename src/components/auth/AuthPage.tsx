@@ -19,11 +19,15 @@ import {
   ChevronDown,
   ChevronUp,
   Cake,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { Button } from '../common/Button';
+import { useTheme } from '../../context/ThemeContext';
 
 export const AuthPage: React.FC = () => {
   const { login, register, mongoStatus, authLogs } = useApp();
+  const { theme, toggleTheme } = useTheme();
 
   // Mode: 'login' | 'register'
   const [mode, setMode] = useState<'login' | 'register'>('login');
@@ -238,28 +242,40 @@ export const AuthPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-zinc-50 via-indigo-50/30 to-purple-50/20 flex flex-col justify-center items-center p-3.5 sm:p-6 lg:p-8 selection:bg-indigo-100 selection:text-indigo-900 safe-area-pb">
+    <div className="min-h-screen bg-gradient-to-br from-zinc-50 via-indigo-50/30 to-purple-50/20 dark:from-[#09090B] dark:via-zinc-900/60 dark:to-zinc-950 flex flex-col justify-center items-center p-3.5 sm:p-6 lg:p-8 selection:bg-indigo-100 selection:text-indigo-900 safe-area-pb relative">
+      {/* Top right theme toggle */}
+      <div className="absolute top-4 right-4 z-20">
+        <button
+          type="button"
+          onClick={toggleTheme}
+          aria-label="Toggle light or dark theme"
+          className="p-2.5 rounded-xl border border-zinc-200/80 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 backdrop-blur-xs transition-colors cursor-pointer shadow-2xs"
+        >
+          {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-zinc-600" />}
+        </button>
+      </div>
+
       {/* Background ambient accents */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-indigo-200/40 rounded-full blur-3xl opacity-70" />
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-200/40 rounded-full blur-3xl opacity-70" />
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-indigo-200/40 dark:bg-indigo-900/20 rounded-full blur-3xl opacity-70" />
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-200/40 dark:bg-purple-900/20 rounded-full blur-3xl opacity-70" />
       </div>
 
       <div className="w-full max-w-lg relative z-10 animate-fade-in my-4 sm:my-6">
         {/* Brand Header */}
         <div className="text-center mb-5 sm:mb-6">
-          <div className="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-500/25 mb-3 ring-4 ring-indigo-50">
+          <div className="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-500/25 mb-3 ring-4 ring-indigo-50 dark:ring-indigo-950/50">
             <Sparkles className="w-6 h-6 sm:w-7 sm:h-7" />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900">
-            Day<span className="text-indigo-600">Ledger</span>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+            Day<span className="text-indigo-600 dark:text-indigo-400">Ledger</span>
           </h1>
-          <p className="text-xs sm:text-sm text-zinc-500 mt-1 max-w-xs mx-auto">
+          <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-1 max-w-xs mx-auto">
             Your unified daily planner, financial ledger & relationship tracker
           </p>
 
           {/* Database Connection Pill */}
-          <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border bg-white/90 backdrop-blur-xs shadow-2xs">
+          <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border border-zinc-200 dark:border-zinc-800 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xs shadow-2xs">
             <span
               className={`w-2 h-2 rounded-full ${
                 mongoStatus.status === 'connected'
@@ -267,7 +283,7 @@ export const AuthPage: React.FC = () => {
                   : 'bg-amber-500'
               }`}
             />
-            <span className="text-zinc-700 font-medium">
+            <span className="text-zinc-700 dark:text-zinc-300 font-medium">
               {mongoStatus.status === 'connected'
                 ? 'MongoDB Connected'
                 : 'Offline / Local Session Ready'}
@@ -276,16 +292,16 @@ export const AuthPage: React.FC = () => {
         </div>
 
         {/* Auth Card */}
-        <div className="bg-white/95 backdrop-blur-md border border-zinc-200/80 rounded-2xl shadow-xl shadow-zinc-200/50 p-4 sm:p-8">
+        <div className="bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border border-zinc-200/80 dark:border-zinc-800 rounded-2xl shadow-xl shadow-zinc-200/50 dark:shadow-black/50 p-4 sm:p-8">
           {/* Two Clear Options: Log in vs Sign up */}
-          <div className="flex bg-zinc-100/90 p-1 rounded-xl mb-6 border border-zinc-200/60">
+          <div className="flex bg-zinc-100/90 dark:bg-zinc-800/90 p-1 rounded-xl mb-6 border border-zinc-200/60 dark:border-zinc-700/60">
             <button
               type="button"
               onClick={() => switchMode('login')}
               className={`flex-1 py-2.5 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-150 cursor-pointer ${
                 mode === 'login'
-                  ? 'bg-white text-zinc-900 shadow-xs'
-                  : 'text-zinc-500 hover:text-zinc-800'
+                  ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-xs'
+                  : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200'
               }`}
             >
               Log In
@@ -295,8 +311,8 @@ export const AuthPage: React.FC = () => {
               onClick={() => switchMode('register')}
               className={`flex-1 py-2.5 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-150 cursor-pointer ${
                 mode === 'register'
-                  ? 'bg-white text-zinc-900 shadow-xs'
-                  : 'text-zinc-500 hover:text-zinc-800'
+                  ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-xs'
+                  : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200'
               }`}
             >
               Sign Up
@@ -343,13 +359,13 @@ export const AuthPage: React.FC = () => {
 
           {/* Saved Local Accounts Quick Selector (Login mode) */}
           {mode === 'login' && storedAccounts.length > 0 && (
-            <div className="mb-4 p-3 bg-zinc-50/90 rounded-xl border border-zinc-200/60">
+            <div className="mb-4 p-3 bg-zinc-50/90 dark:bg-zinc-800/60 rounded-xl border border-zinc-200/60 dark:border-zinc-700/60">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[11px] font-semibold text-zinc-600 uppercase tracking-wider flex items-center gap-1.5">
-                  <ShieldCheck className="w-3.5 h-3.5 text-indigo-600" />
+                <span className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
                   Saved Accounts
                 </span>
-                <span className="text-[10px] text-zinc-400">Click to autofill</span>
+                <span className="text-[10px] text-zinc-400 dark:text-zinc-500">Click to autofill</span>
               </div>
               <div className="space-y-1.5 max-h-32 overflow-y-auto pr-1">
                 {storedAccounts.map((acc) => (
@@ -361,8 +377,8 @@ export const AuthPage: React.FC = () => {
                     }}
                     className={`w-full flex items-center justify-between p-2 rounded-lg border transition-all cursor-pointer text-left text-xs ${
                       email.toLowerCase() === acc.email.toLowerCase()
-                        ? 'border-indigo-400 bg-indigo-50/70 text-indigo-900 shadow-2xs'
-                        : 'border-zinc-200/70 bg-white hover:bg-zinc-100/70 text-zinc-700'
+                        ? 'border-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/50 text-indigo-900 dark:text-indigo-200 shadow-2xs'
+                        : 'border-zinc-200/70 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-zinc-100/70 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-200'
                     }`}
                   >
                     <div className="flex items-center gap-2 min-w-0">
@@ -371,10 +387,10 @@ export const AuthPage: React.FC = () => {
                       </div>
                       <div className="min-w-0">
                         <p className="font-semibold truncate leading-tight">{acc.name}</p>
-                        <p className="text-[10px] text-zinc-400 truncate leading-tight font-mono">{acc.email}</p>
+                        <p className="text-[10px] text-zinc-400 dark:text-zinc-500 truncate leading-tight font-mono">{acc.email}</p>
                       </div>
                     </div>
-                    <span className="text-[10px] font-medium text-indigo-600 shrink-0">
+                    <span className="text-[10px] font-medium text-indigo-600 dark:text-indigo-400 shrink-0">
                       {email.toLowerCase() === acc.email.toLowerCase() ? 'Selected' : 'Use'}
                     </span>
                   </button>
@@ -759,10 +775,10 @@ export const AuthPage: React.FC = () => {
             <>
               <div className="relative my-5">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-zinc-200" />
+                  <div className="w-full border-t border-zinc-200 dark:border-zinc-800" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-white px-3 text-zinc-400 font-medium tracking-wider">
+                  <span className="bg-white dark:bg-zinc-900 px-3 text-zinc-400 dark:text-zinc-500 font-medium tracking-wider">
                     Instant Test Access
                   </span>
                 </div>
@@ -772,22 +788,22 @@ export const AuthPage: React.FC = () => {
                 type="button"
                 onClick={handleQuickTestLogin}
                 disabled={isLoading}
-                className="w-full flex items-center justify-between p-3 rounded-xl border border-indigo-200 bg-indigo-50/60 hover:bg-indigo-50 text-indigo-900 transition-all cursor-pointer group shadow-2xs text-left"
+                className="w-full flex items-center justify-between p-3 rounded-xl border border-indigo-200 dark:border-indigo-800/80 bg-indigo-50/60 dark:bg-indigo-950/30 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 text-indigo-900 dark:text-indigo-200 transition-all cursor-pointer group shadow-2xs text-left"
               >
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
                     ⚡
                   </div>
                   <div>
-                    <p className="text-xs font-semibold text-indigo-950">
+                    <p className="text-xs font-semibold text-indigo-950 dark:text-indigo-100">
                       1-Click Test Login
                     </p>
-                    <p className="text-[11px] text-indigo-600 font-mono">
+                    <p className="text-[11px] text-indigo-600 dark:text-indigo-400 font-mono">
                       test@dayledger.app / password123
                     </p>
                   </div>
                 </div>
-                <span className="text-xs font-semibold text-indigo-600 group-hover:translate-x-0.5 transition-transform">
+                <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 group-hover:translate-x-0.5 transition-transform">
                   Fill & Login →
                 </span>
               </button>
@@ -796,57 +812,57 @@ export const AuthPage: React.FC = () => {
         </div>
 
         {/* Stored Authentication Activity Logs Accordion */}
-        <div className="mt-4 bg-white/90 backdrop-blur-md border border-zinc-200/80 rounded-2xl p-3.5 shadow-sm">
+        <div className="mt-4 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md border border-zinc-200/80 dark:border-zinc-800 rounded-2xl p-3.5 shadow-sm">
           <button
             type="button"
             onClick={() => setShowLogsDrawer((prev) => !prev)}
-            className="w-full flex items-center justify-between text-left text-xs font-semibold text-zinc-700 hover:text-indigo-600 transition-colors cursor-pointer"
+            className="w-full flex items-center justify-between text-left text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer"
           >
             <div className="flex items-center gap-2">
-              <History className="w-4 h-4 text-indigo-600" />
+              <History className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
               <span>Stored Auth & Session Logs ({authLogs.length} events recorded)</span>
             </div>
             {showLogsDrawer ? (
-              <ChevronUp className="w-4 h-4 text-zinc-400" />
+              <ChevronUp className="w-4 h-4 text-zinc-400 dark:text-zinc-500" />
             ) : (
-              <ChevronDown className="w-4 h-4 text-zinc-400" />
+              <ChevronDown className="w-4 h-4 text-zinc-400 dark:text-zinc-500" />
             )}
           </button>
 
           {showLogsDrawer && (
-            <div className="mt-3 pt-3 border-t border-zinc-100 space-y-2 max-h-56 overflow-y-auto pr-1">
+            <div className="mt-3 pt-3 border-t border-zinc-100 dark:border-zinc-800 space-y-2 max-h-56 overflow-y-auto pr-1">
               {authLogs.length === 0 ? (
-                <p className="text-xs text-zinc-400 text-center py-2">
+                <p className="text-xs text-zinc-400 dark:text-zinc-500 text-center py-2">
                   No login or logout records yet.
                 </p>
               ) : (
                 authLogs.map((log) => (
                   <div
                     key={log.id}
-                    className="flex items-center justify-between text-xs p-2.5 rounded-xl bg-zinc-50 border border-zinc-100"
+                    className="flex items-center justify-between text-xs p-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-100 dark:border-zinc-800"
                   >
                     <div className="flex items-center gap-2 min-w-0">
                       <span
                         className={`text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0 ${
                           log.type === 'LOGIN'
-                            ? 'bg-emerald-100 text-emerald-800'
+                            ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300'
                             : log.type === 'LOGOUT'
-                            ? 'bg-rose-100 text-rose-800'
-                            : 'bg-indigo-100 text-indigo-800'
+                            ? 'bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300'
+                            : 'bg-indigo-100 dark:bg-indigo-950/60 text-indigo-800 dark:text-indigo-300'
                         }`}
                       >
                         {log.type}
                       </span>
                       <div className="min-w-0">
-                        <p className="font-semibold text-zinc-800 truncate leading-tight">
+                        <p className="font-semibold text-zinc-800 dark:text-zinc-200 truncate leading-tight">
                           {log.name || log.email}
                         </p>
-                        <p className="text-[10px] text-zinc-500 truncate leading-tight">
+                        <p className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate leading-tight">
                           {log.email} {log.details ? `• ${log.details}` : ''}
                         </p>
                       </div>
                     </div>
-                    <span className="text-[10px] text-zinc-400 font-mono shrink-0 ml-2">
+                    <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-mono shrink-0 ml-2">
                       {new Date(log.timestamp).toLocaleTimeString([], {
                         hour: '2-digit',
                         minute: '2-digit',

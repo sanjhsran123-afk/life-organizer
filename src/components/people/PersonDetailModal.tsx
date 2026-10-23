@@ -109,23 +109,23 @@ export const PersonDetailModal: React.FC = () => {
 
         {/* Ledger Summary Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-200/60">
-            <span className="text-[11px] font-medium text-zinc-500 block">Total Lent</span>
-            <span className="text-sm font-bold text-zinc-900 mt-0.5 block">
+          <div className="p-3 bg-zinc-50 dark:bg-zinc-800/60 rounded-xl border border-zinc-200/60 dark:border-zinc-700/60">
+            <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 block">Total Lent</span>
+            <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100 mt-0.5 block">
               {formatCurrency(personStats.totalLent, profile.currency)}
             </span>
           </div>
 
-          <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-200/60">
-            <span className="text-[11px] font-medium text-zinc-500 block">Received Back</span>
-            <span className="text-sm font-bold text-emerald-600 mt-0.5 block">
+          <div className="p-3 bg-zinc-50 dark:bg-zinc-800/60 rounded-xl border border-zinc-200/60 dark:border-zinc-700/60">
+            <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 block">Received Back</span>
+            <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 block">
               {formatCurrency(personStats.totalReceived, profile.currency)}
             </span>
           </div>
 
-          <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-200/60">
-            <span className="text-[11px] font-medium text-zinc-500 block">You Borrowed</span>
-            <span className="text-sm font-bold text-amber-700 mt-0.5 block">
+          <div className="p-3 bg-zinc-50 dark:bg-zinc-800/60 rounded-xl border border-zinc-200/60 dark:border-zinc-700/60">
+            <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 block">You Borrowed</span>
+            <span className="text-sm font-bold text-amber-700 dark:text-amber-400 mt-0.5 block">
               {formatCurrency(personStats.totalBorrowed, profile.currency)}
             </span>
           </div>
@@ -133,10 +133,10 @@ export const PersonDetailModal: React.FC = () => {
           <div
             className={`p-3 rounded-xl border ${
               netBalance > 0
-                ? 'bg-amber-50/70 border-amber-200/80 text-amber-900'
+                ? 'bg-amber-50/70 dark:bg-amber-950/40 border-amber-200/80 dark:border-amber-800/60 text-amber-900 dark:text-amber-300'
                 : netBalance < 0
-                ? 'bg-rose-50/70 border-rose-200/80 text-rose-900'
-                : 'bg-emerald-50/70 border-emerald-200/80 text-emerald-900'
+                ? 'bg-rose-50/70 dark:bg-rose-950/40 border-rose-200/80 dark:border-rose-800/60 text-rose-900 dark:text-rose-300'
+                : 'bg-emerald-50/70 dark:bg-emerald-950/40 border-emerald-200/80 dark:border-emerald-800/60 text-emerald-900 dark:text-emerald-300'
             }`}
           >
             <span className="text-[11px] font-medium block">
@@ -157,13 +157,13 @@ export const PersonDetailModal: React.FC = () => {
         {/* Transactions Timeline */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-500">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
               Transaction History ({personTransactions.length})
             </h4>
           </div>
 
           {personTransactions.length === 0 ? (
-            <p className="text-xs text-zinc-400 italic py-4 text-center">
+            <p className="text-xs text-zinc-400 dark:text-zinc-500 italic py-4 text-center">
               No transactions recorded yet with {person.name}.
             </p>
           ) : (
@@ -176,15 +176,15 @@ export const PersonDetailModal: React.FC = () => {
                 return (
                   <div
                     key={tx.id}
-                    className="p-3.5 rounded-xl border border-zinc-200/70 bg-white hover:border-zinc-300 transition-colors shadow-2xs space-y-2"
+                    className="p-3.5 rounded-xl border border-zinc-200/70 dark:border-zinc-800 bg-white dark:bg-zinc-850 hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors shadow-2xs space-y-2"
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                       <div className="flex items-center gap-2.5 min-w-0">
                         <div
                           className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
                             isLent
-                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/50'
-                              : 'bg-amber-50 text-amber-800 border border-amber-200/50'
+                              ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/50'
+                              : 'bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-400 border border-amber-200/50 dark:border-amber-800/50'
                           }`}
                         >
                           {isLent ? (
@@ -194,11 +194,11 @@ export const PersonDetailModal: React.FC = () => {
                           )}
                         </div>
                         <div className="min-w-0 flex flex-wrap items-center gap-1.5">
-                          <span className="text-xs font-semibold text-zinc-900">
+                          <span className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
                             {isLent ? 'Lent' : 'Borrowed'} {formatCurrency(tx.amount, profile.currency)}
                           </span>
                           <span className="text-xs text-zinc-400">•</span>
-                          <span className="text-[11px] text-zinc-500">{formatDate(tx.date)}</span>
+                          <span className="text-[11px] text-zinc-500 dark:text-zinc-400">{formatDate(tx.date)}</span>
                           <span className="text-xs text-zinc-400">•</span>
                           <Badge size="xs" variant="neutral">
                             {tx.category}

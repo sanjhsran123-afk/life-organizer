@@ -134,8 +134,8 @@ export const TasksView: React.FC = () => {
       {/* Top Header & Action */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-zinc-900">Task Management</h2>
-          <p className="text-xs text-zinc-500 mt-0.5">
+          <h2 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">Task Management</h2>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
             Organize coursework, personal milestones, and daily to-dos.
           </p>
         </div>
@@ -150,7 +150,7 @@ export const TasksView: React.FC = () => {
       </div>
 
       {/* Filter Tabs & View switchers */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1 border-b border-zinc-200/80">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1 border-b border-zinc-200/80 dark:border-zinc-800">
         <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
           {(
             [
@@ -166,18 +166,18 @@ export const TasksView: React.FC = () => {
               onClick={() => setFilter(tab.id)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shrink-0 cursor-pointer ${
                 filter === tab.id
-                  ? 'bg-zinc-900 text-white font-semibold shadow-2xs'
-                  : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
+                  ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 font-semibold shadow-2xs'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800'
               }`}
             >
               <span>{tab.label}</span>
               <span
                 className={`text-[10px] px-1.5 py-0.2 rounded-md ${
                   filter === tab.id
-                    ? 'bg-zinc-800 text-zinc-200'
+                    ? 'bg-zinc-800 dark:bg-zinc-200 text-zinc-200 dark:text-zinc-800'
                     : tab.danger
-                    ? 'bg-rose-100 text-rose-700 font-bold'
-                    : 'bg-zinc-100 text-zinc-500'
+                    ? 'bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 font-bold'
+                    : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400'
                 }`}
               >
                 {tab.count}
@@ -187,11 +187,13 @@ export const TasksView: React.FC = () => {
         </div>
 
         {/* View Mode Toggle */}
-        <div className="flex items-center gap-1 bg-zinc-100 p-1 rounded-xl shrink-0 self-start sm:self-auto">
+        <div className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-800 p-1 rounded-xl shrink-0 self-start sm:self-auto">
           <button
             onClick={() => setViewMode('list')}
             className={`p-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-              viewMode === 'list' ? 'bg-white text-zinc-900 shadow-2xs' : 'text-zinc-500 hover:text-zinc-900'
+              viewMode === 'list'
+                ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-2xs'
+                : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
             }`}
             title="List view"
           >
@@ -200,7 +202,9 @@ export const TasksView: React.FC = () => {
           <button
             onClick={() => setViewMode('cards')}
             className={`p-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-              viewMode === 'cards' ? 'bg-white text-zinc-900 shadow-2xs' : 'text-zinc-500 hover:text-zinc-900'
+              viewMode === 'cards'
+                ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-2xs'
+                : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
             }`}
             title="Cards view"
           >
@@ -209,7 +213,9 @@ export const TasksView: React.FC = () => {
           <button
             onClick={() => setViewMode('kanban')}
             className={`p-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-              viewMode === 'kanban' ? 'bg-white text-zinc-900 shadow-2xs' : 'text-zinc-500 hover:text-zinc-900'
+              viewMode === 'kanban'
+                ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-2xs'
+                : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
             }`}
             title="Kanban Board view"
           >
@@ -227,32 +233,32 @@ export const TasksView: React.FC = () => {
             placeholder="Search tasks by name or description..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-white border border-zinc-200/90 rounded-xl text-base sm:text-xs pl-9 pr-3 py-2.5 sm:py-2 min-h-[42px] sm:min-h-0 text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10"
+            className="w-full bg-white dark:bg-zinc-850 border border-zinc-200/90 dark:border-zinc-700 rounded-xl text-base sm:text-xs pl-9 pr-3 py-2.5 sm:py-2 min-h-[42px] sm:min-h-0 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10"
           />
         </div>
 
         <select
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
-          className="bg-white border border-zinc-200/90 rounded-xl text-base sm:text-xs px-3 py-2.5 sm:py-2 min-h-[42px] sm:min-h-0 text-zinc-700 focus:outline-none focus:border-indigo-500 cursor-pointer"
+          className="bg-white dark:bg-zinc-850 border border-zinc-200/90 dark:border-zinc-700 rounded-xl text-base sm:text-xs px-3 py-2.5 sm:py-2 min-h-[42px] sm:min-h-0 text-zinc-700 dark:text-zinc-200 focus:outline-none focus:border-indigo-500 cursor-pointer"
         >
-          <option value="all">All Categories</option>
-          <option value="College">College</option>
-          <option value="Personal">Personal</option>
-          <option value="Work">Work</option>
-          <option value="Finance">Finance</option>
-          <option value="Health">Health</option>
-          <option value="Other">Other</option>
+          <option value="all" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">All Categories</option>
+          <option value="College" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">College</option>
+          <option value="Personal" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">Personal</option>
+          <option value="Work" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">Work</option>
+          <option value="Finance" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">Finance</option>
+          <option value="Health" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">Health</option>
+          <option value="Other" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">Other</option>
         </select>
 
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value as any)}
-          className="bg-white border border-zinc-200/90 rounded-xl text-base sm:text-xs px-3 py-2.5 sm:py-2 min-h-[42px] sm:min-h-0 text-zinc-700 focus:outline-none focus:border-indigo-500 cursor-pointer"
+          className="bg-white dark:bg-zinc-850 border border-zinc-200/90 dark:border-zinc-700 rounded-xl text-base sm:text-xs px-3 py-2.5 sm:py-2 min-h-[42px] sm:min-h-0 text-zinc-700 dark:text-zinc-200 focus:outline-none focus:border-indigo-500 cursor-pointer"
         >
-          <option value="dueDate">Sort by: Due Date</option>
-          <option value="priority">Sort by: Priority</option>
-          <option value="title">Sort by: Title (A-Z)</option>
+          <option value="dueDate" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">Sort by: Due Date</option>
+          <option value="priority" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">Sort by: Priority</option>
+          <option value="title" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">Sort by: Title (A-Z)</option>
         </select>
       </div>
 
@@ -285,18 +291,18 @@ export const TasksView: React.FC = () => {
             return (
               <div
                 key={col.id}
-                className="bg-zinc-50/80 rounded-2xl border border-zinc-200/80 p-3 flex flex-col min-h-[400px]"
+                className="bg-zinc-50/80 dark:bg-zinc-900/60 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 p-3 flex flex-col min-h-[400px]"
               >
-                <div className="flex items-center justify-between pb-3 px-1 border-b border-zinc-200/60">
+                <div className="flex items-center justify-between pb-3 px-1 border-b border-zinc-200/60 dark:border-zinc-800">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-zinc-800">{col.label}</span>
+                    <span className="text-xs font-bold text-zinc-800 dark:text-zinc-200">{col.label}</span>
                     <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${col.color}`}>
                       {col.count}
                     </span>
                   </div>
                   <button
                     onClick={() => openTaskModal({ status: col.id } as any)}
-                    className="text-zinc-400 hover:text-zinc-700 p-1 rounded hover:bg-zinc-200/60 transition-colors"
+                    className="text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 p-1 rounded hover:bg-zinc-200/60 dark:hover:bg-zinc-800 transition-colors"
                   >
                     <Plus className="w-3.5 h-3.5" />
                   </button>
@@ -304,7 +310,7 @@ export const TasksView: React.FC = () => {
 
                 <div className="flex-1 py-3 space-y-2.5 overflow-y-auto">
                   {colTasks.length === 0 ? (
-                    <div className="h-32 flex items-center justify-center text-xs text-zinc-400 border border-dashed border-zinc-200 rounded-xl">
+                    <div className="h-32 flex items-center justify-center text-xs text-zinc-400 dark:text-zinc-500 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-xl">
                       No tasks in this column
                     </div>
                   ) : (
@@ -340,7 +346,7 @@ export const TasksView: React.FC = () => {
         </div>
       ) : (
         /* LIST VIEW */
-        <div className="bg-white rounded-2xl border border-zinc-200/80 shadow-xs divide-y divide-zinc-100 overflow-hidden">
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 shadow-xs divide-y divide-zinc-100 dark:divide-zinc-800 overflow-hidden">
           {filteredTasks.map((task) => {
             const isDone = task.status === 'completed';
             const overdue = !isDone && isOverdue(task.dueDate);
@@ -348,8 +354,8 @@ export const TasksView: React.FC = () => {
             return (
               <div
                 key={task.id}
-                className={`flex items-center gap-3.5 p-3.5 sm:px-4 hover:bg-zinc-50/70 transition-colors group ${
-                  isDone ? 'bg-zinc-50/40 opacity-70' : ''
+                className={`flex items-center gap-3.5 p-3.5 sm:px-4 hover:bg-zinc-50/70 dark:hover:bg-zinc-800/50 transition-colors group ${
+                  isDone ? 'bg-zinc-50/40 dark:bg-zinc-900/40 opacity-70' : ''
                 }`}
               >
                 {/* Interactive Checkbox */}
@@ -359,7 +365,7 @@ export const TasksView: React.FC = () => {
                   className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all cursor-pointer shrink-0 ${
                     isDone
                       ? 'bg-emerald-600 border-emerald-600 text-white'
-                      : 'border-zinc-300 hover:border-indigo-500 bg-white'
+                      : 'border-zinc-300 dark:border-zinc-600 hover:border-indigo-500 bg-white dark:bg-zinc-800'
                   }`}
                 >
                   {isDone && <Check className="w-3.5 h-3.5 stroke-[2.5]" />}
@@ -373,7 +379,7 @@ export const TasksView: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <span
                       className={`text-xs sm:text-sm font-semibold truncate ${
-                        isDone ? 'line-through text-zinc-400' : 'text-zinc-900'
+                        isDone ? 'line-through text-zinc-400 dark:text-zinc-500' : 'text-zinc-900 dark:text-zinc-100'
                       }`}
                     >
                       {task.title}
@@ -392,7 +398,7 @@ export const TasksView: React.FC = () => {
                     </Badge>
                   </div>
                   {task.description && (
-                    <p className="text-[11px] text-zinc-500 truncate mt-0.5">{task.description}</p>
+                    <p className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate mt-0.5">{task.description}</p>
                   )}
 
                   {/* Category & Due Date shown on phone screens */}
@@ -402,7 +408,7 @@ export const TasksView: React.FC = () => {
                     </Badge>
                     <span
                       className={`font-medium flex items-center gap-1 ${
-                        overdue ? 'text-rose-600 font-semibold' : 'text-zinc-500'
+                        overdue ? 'text-rose-600 dark:text-rose-400 font-semibold' : 'text-zinc-500 dark:text-zinc-400'
                       }`}
                     >
                       <Calendar className="w-3 h-3 text-zinc-400" />
@@ -419,7 +425,7 @@ export const TasksView: React.FC = () => {
 
                   <span
                     className={`text-[11px] font-medium flex items-center gap-1 ${
-                      overdue ? 'text-rose-600 font-semibold' : 'text-zinc-500'
+                      overdue ? 'text-rose-600 dark:text-rose-400 font-semibold' : 'text-zinc-500 dark:text-zinc-400'
                     }`}
                   >
                     <Calendar className="w-3 h-3 text-zinc-400" />
@@ -427,11 +433,11 @@ export const TasksView: React.FC = () => {
                   </span>
                 </div>
 
-                {/* Row actions: visible by default on mobile touchscreens, hover on desktop */}
+                {/* Row actions */}
                 <div className="flex items-center gap-1 shrink-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                   <button
                     onClick={() => openTaskModal(task)}
-                    className="p-2 sm:p-1.5 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 rounded-lg cursor-pointer"
+                    className="p-2 sm:p-1.5 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg cursor-pointer"
                     title="Edit task"
                     aria-label="Edit task"
                   >
@@ -439,7 +445,7 @@ export const TasksView: React.FC = () => {
                   </button>
                   <button
                     onClick={() => setTaskToDelete(task)}
-                    className="p-2 sm:p-1.5 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg cursor-pointer"
+                    className="p-2 sm:p-1.5 text-zinc-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg cursor-pointer"
                     title="Delete task"
                     aria-label="Delete task"
                   >
@@ -482,8 +488,8 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onToggle, onEdit, onDelete, c
 
   return (
     <div
-      className={`p-3.5 bg-white rounded-xl border border-zinc-200/80 shadow-2xs hover:border-zinc-300 transition-all ${
-        isDone ? 'bg-zinc-50/50 opacity-70' : ''
+      className={`p-3.5 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200/80 dark:border-zinc-800 shadow-2xs hover:border-zinc-300 dark:hover:border-zinc-700 transition-all ${
+        isDone ? 'bg-zinc-50/50 dark:bg-zinc-900/50 opacity-70' : ''
       }`}
     >
       <div className="flex items-start justify-between gap-2">
@@ -494,7 +500,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onToggle, onEdit, onDelete, c
             className={`mt-0.5 w-4.5 h-4.5 rounded-md border flex items-center justify-center transition-all cursor-pointer shrink-0 ${
               isDone
                 ? 'bg-emerald-600 border-emerald-600 text-white'
-                : 'border-zinc-300 hover:border-indigo-500 bg-white'
+                : 'border-zinc-300 dark:border-zinc-600 hover:border-indigo-500 bg-white dark:bg-zinc-800'
             }`}
           >
             {isDone && <Check className="w-3 h-3 stroke-[2.5]" />}
@@ -502,13 +508,13 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onToggle, onEdit, onDelete, c
           <div className="min-w-0 cursor-pointer" onClick={onEdit}>
             <h4
               className={`text-xs font-semibold ${
-                isDone ? 'line-through text-zinc-400' : 'text-zinc-900'
+                isDone ? 'line-through text-zinc-400 dark:text-zinc-500' : 'text-zinc-900 dark:text-zinc-100'
               }`}
             >
               {task.title}
             </h4>
             {task.description && !compact && (
-              <p className="text-[11px] text-zinc-500 line-clamp-2 mt-1">{task.description}</p>
+              <p className="text-[11px] text-zinc-500 dark:text-zinc-400 line-clamp-2 mt-1">{task.description}</p>
             )}
           </div>
         </div>

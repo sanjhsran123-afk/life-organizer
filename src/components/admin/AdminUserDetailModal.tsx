@@ -125,31 +125,31 @@ export const AdminUserDetailModal: React.FC<AdminUserDetailModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-6 bg-black/50 backdrop-blur-xs animate-fade-in">
       <div
-        className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl border border-zinc-200 w-full max-w-2xl max-h-[92dvh] sm:max-h-[88vh] flex flex-col overflow-hidden animate-pop-in"
+        className="bg-white dark:bg-zinc-900 rounded-t-3xl sm:rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 w-full max-w-2xl max-h-[92dvh] sm:max-h-[88vh] flex flex-col overflow-hidden animate-pop-in"
         role="dialog"
         aria-modal="true"
         aria-labelledby="user-detail-title"
       >
         {/* Mobile Pull Handle */}
-        <div className="sm:hidden w-10 h-1 bg-zinc-300 rounded-full mx-auto mt-2.5 mb-1 shrink-0" />
+        <div className="sm:hidden w-10 h-1 bg-zinc-300 dark:bg-zinc-700 rounded-full mx-auto mt-2.5 mb-1 shrink-0" />
 
         {/* Header */}
-        <div className="px-4 py-3.5 sm:px-6 sm:py-5 border-b border-zinc-100 flex items-center justify-between bg-zinc-50/70 shrink-0">
+        <div className="px-4 py-3.5 sm:px-6 sm:py-5 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between bg-zinc-50/70 dark:bg-zinc-850/70 shrink-0">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-indigo-600 flex items-center justify-center text-white font-bold text-base shadow-xs shrink-0">
               {user.name.charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0">
-              <h2 id="user-detail-title" className="text-base sm:text-lg font-bold text-zinc-900 leading-tight truncate">
+              <h2 id="user-detail-title" className="text-base sm:text-lg font-bold text-zinc-900 dark:text-zinc-100 leading-tight truncate">
                 {user.name}
               </h2>
               <div className="flex items-center gap-2 mt-0.5">
-                <span className="text-xs text-zinc-500">{user.email}</span>
+                <span className="text-xs text-zinc-500 dark:text-zinc-400">{user.email}</span>
                 <span
                   className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold tracking-wide uppercase ${
                     user.role === 'admin'
-                      ? 'bg-purple-100 text-purple-800'
-                      : 'bg-zinc-100 text-zinc-700'
+                      ? 'bg-purple-100 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300'
+                      : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300'
                   }`}
                 >
                   {user.role === 'admin' ? (
@@ -166,7 +166,7 @@ export const AdminUserDetailModal: React.FC<AdminUserDetailModalProps> = ({
 
           <button
             onClick={onClose}
-            className="p-2 text-zinc-400 hover:text-zinc-600 hover:bg-zinc-200/50 rounded-xl transition-colors cursor-pointer"
+            className="p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-200/50 dark:hover:bg-zinc-800 rounded-xl transition-colors cursor-pointer"
             aria-label="Close user details modal"
           >
             <X className="w-5 h-5" />
@@ -176,7 +176,7 @@ export const AdminUserDetailModal: React.FC<AdminUserDetailModalProps> = ({
         {/* Body content */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {roleError && (
-            <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 flex items-center gap-2">
+            <div className="p-3.5 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 rounded-xl text-xs text-rose-700 dark:text-rose-300 flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 shrink-0" />
               <span>{roleError}</span>
             </div>
@@ -184,69 +184,69 @@ export const AdminUserDetailModal: React.FC<AdminUserDetailModalProps> = ({
 
           {/* Stored Profile Information */}
           <section>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-600 mb-3 flex items-center gap-1.5">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-600 dark:text-zinc-400 mb-3 flex items-center gap-1.5">
               <User className="w-3.5 h-3.5" /> Stored User Profile
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 bg-zinc-50/80 p-4 rounded-xl border border-zinc-200/80">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 bg-zinc-50/80 dark:bg-zinc-800/40 p-4 rounded-xl border border-zinc-200/80 dark:border-zinc-700/80">
               <div className="flex flex-col">
-                <span className="text-[11px] text-zinc-600 flex items-center gap-1">
+                <span className="text-[11px] text-zinc-600 dark:text-zinc-400 flex items-center gap-1">
                   <User className="w-3 h-3" /> Full Name
                 </span>
-                <span className="text-sm font-semibold text-zinc-900 mt-0.5">{user.name}</span>
+                <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mt-0.5">{user.name}</span>
               </div>
 
               <div className="flex flex-col">
-                <span className="text-[11px] text-zinc-600 flex items-center gap-1">
+                <span className="text-[11px] text-zinc-600 dark:text-zinc-400 flex items-center gap-1">
                   <Mail className="w-3 h-3" /> Email Address
                 </span>
-                <span className="text-sm font-semibold text-zinc-900 mt-0.5 truncate">{user.email}</span>
+                <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mt-0.5 truncate">{user.email}</span>
               </div>
 
               <div className="flex flex-col">
-                <span className="text-[11px] text-zinc-600 flex items-center gap-1">
+                <span className="text-[11px] text-zinc-600 dark:text-zinc-400 flex items-center gap-1">
                   <Phone className="w-3 h-3" /> Phone Number
                 </span>
-                <span className="text-sm font-semibold text-zinc-900 mt-0.5">{user.phone || 'Not provided'}</span>
+                <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mt-0.5">{user.phone || 'Not provided'}</span>
               </div>
 
               <div className="flex flex-col">
-                <span className="text-[11px] text-zinc-600 flex items-center gap-1">
+                <span className="text-[11px] text-zinc-600 dark:text-zinc-400 flex items-center gap-1">
                   <Calendar className="w-3 h-3" /> Date of Birth & Age
                 </span>
-                <span className="text-sm font-semibold text-zinc-900 mt-0.5">
+                <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mt-0.5">
                   {user.dateOfBirth || 'N/A'}{' '}
-                  <span className="text-xs text-zinc-600 font-normal">
+                  <span className="text-xs text-zinc-600 dark:text-zinc-400 font-normal">
                     ({user.currentAge !== undefined ? `${user.currentAge} yrs (current)` : `${user.age} yrs`})
                   </span>
                 </span>
               </div>
 
               <div className="flex flex-col">
-                <span className="text-[11px] text-zinc-600 flex items-center gap-1">
+                <span className="text-[11px] text-zinc-600 dark:text-zinc-400 flex items-center gap-1">
                   <Shield className="w-3 h-3" /> Role & Permissions
                 </span>
                 <div className="flex items-center gap-2 mt-1">
-                  <span className="text-sm font-bold text-zinc-900 capitalize">{user.role}</span>
+                  <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100 capitalize">{user.role}</span>
                   {!isSelf ? (
                     <button
                       onClick={handleRoleToggle}
                       disabled={updatingRole}
-                      className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-white border border-zinc-300 hover:bg-zinc-100 text-zinc-700 transition-colors shadow-2xs cursor-pointer flex items-center gap-1"
+                      className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-200 transition-colors shadow-2xs cursor-pointer flex items-center gap-1"
                     >
                       {updatingRole && <Loader2 className="w-3 h-3 animate-spin" />}
                       {user.role === 'admin' ? 'Demote to User' : 'Promote to Admin'}
                     </button>
                   ) : (
-                    <span className="text-[10px] text-zinc-600 italic">(Current Logged-in Admin)</span>
+                    <span className="text-[10px] text-zinc-600 dark:text-zinc-400 italic">(Current Logged-in Admin)</span>
                   )}
                 </div>
               </div>
 
               <div className="flex flex-col">
-                <span className="text-[11px] text-zinc-600 flex items-center gap-1">
+                <span className="text-[11px] text-zinc-600 dark:text-zinc-400 flex items-center gap-1">
                   <Clock className="w-3 h-3" /> Account Created
                 </span>
-                <span className="text-sm font-semibold text-zinc-900 mt-0.5">
+                <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mt-0.5">
                   {formatDateTime(user.createdAt)}
                 </span>
               </div>
@@ -256,19 +256,19 @@ export const AdminUserDetailModal: React.FC<AdminUserDetailModalProps> = ({
           {/* Account Activity Timeline */}
           <section>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-600 flex items-center gap-1.5">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-600 dark:text-zinc-400 flex items-center gap-1.5">
                 <Activity className="w-3.5 h-3.5" /> Recent User Activity ({activity.length})
               </h3>
-              <span className="text-[11px] text-zinc-600">MongoDB Source of Truth</span>
+              <span className="text-[11px] text-zinc-600 dark:text-zinc-400">MongoDB Source of Truth</span>
             </div>
 
             {isLoading ? (
-              <div className="py-8 text-center text-zinc-600 text-xs flex items-center justify-center gap-2">
-                <Loader2 className="w-4 h-4 animate-spin text-indigo-600" />
+              <div className="py-8 text-center text-zinc-600 dark:text-zinc-400 text-xs flex items-center justify-center gap-2">
+                <Loader2 className="w-4 h-4 animate-spin text-indigo-600 dark:text-indigo-400" />
                 <span>Loading activity history from MongoDB...</span>
               </div>
             ) : activity.length === 0 ? (
-              <div className="p-6 text-center bg-zinc-50 rounded-xl border border-zinc-200 text-xs text-zinc-600">
+              <div className="p-6 text-center bg-zinc-50 dark:bg-zinc-800/40 rounded-xl border border-zinc-200 dark:border-zinc-700 text-xs text-zinc-600 dark:text-zinc-400">
                 No server activity records found for this account.
               </div>
             ) : (
@@ -276,20 +276,20 @@ export const AdminUserDetailModal: React.FC<AdminUserDetailModalProps> = ({
                 {activity.map((act) => (
                   <div
                     key={act._id}
-                    className="p-3 bg-white rounded-xl border border-zinc-200/80 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:border-zinc-300 transition-colors"
+                    className="p-3 bg-white dark:bg-zinc-800/80 rounded-xl border border-zinc-200/80 dark:border-zinc-700/80 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:border-zinc-300 dark:hover:border-zinc-600 transition-colors"
                   >
                     <div className="flex items-center gap-2.5">
                       {getEventBadge(act.eventType)}
                       <div className="flex flex-col">
-                        <span className="text-xs font-semibold text-zinc-800">
+                        <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">
                           {act.details || act.eventType}
                         </span>
-                        <span className="text-[10px] text-zinc-600 font-mono">
+                        <span className="text-[10px] text-zinc-600 dark:text-zinc-400 font-mono">
                           IP: {act.ipAddress} • {act.userAgent.substring(0, 35)}
                         </span>
                       </div>
                     </div>
-                    <span className="text-[11px] text-zinc-600 whitespace-nowrap self-start sm:self-center">
+                    <span className="text-[11px] text-zinc-600 dark:text-zinc-400 whitespace-nowrap self-start sm:self-center">
                       {formatDateTime(act.timestamp)}
                     </span>
                   </div>
@@ -299,22 +299,22 @@ export const AdminUserDetailModal: React.FC<AdminUserDetailModalProps> = ({
           </section>
 
           {/* Security & Non-Disclosure Notice */}
-          <div className="p-3.5 bg-amber-50/70 border border-amber-200/80 rounded-xl text-[11px] text-amber-800 flex items-start gap-2">
-            <ShieldCheck className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
+          <div className="p-3.5 bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/40 rounded-xl text-[11px] text-amber-800 dark:text-amber-300 flex items-start gap-2">
+            <ShieldCheck className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
             <div>
               <p className="font-semibold">Security & Privacy Protocol Active</p>
-              <p className="text-[10.5px] text-amber-700 mt-0.5">
-                Passwords, password hashes, and authentication tokens are strictly protected by server-side query projection (<code className="px-1 py-0.5 bg-amber-100 rounded">.select('-password')</code>) and are never transmitted to client interfaces or admin export files.
+              <p className="text-[10.5px] text-amber-700 dark:text-amber-400 mt-0.5">
+                Passwords, password hashes, and authentication tokens are strictly protected by server-side query projection (<code className="px-1 py-0.5 bg-amber-100 dark:bg-amber-900/40 rounded">.select('-password')</code>) and are never transmitted to client interfaces or admin export files.
               </p>
             </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-zinc-100 flex items-center justify-end bg-zinc-50/50">
+        <div className="px-6 py-4 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-end bg-zinc-50/50 dark:bg-zinc-850/50">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-xs font-semibold rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 transition-colors shadow-xs cursor-pointer"
+            className="px-4 py-2 text-xs font-semibold rounded-xl bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors shadow-xs cursor-pointer"
           >
             Close
           </button>

@@ -18,10 +18,10 @@ export const ToastContainer: React.FC = () => {
         };
 
         const borders = {
-          success: 'border-emerald-200/80 bg-white',
-          error: 'border-rose-200/80 bg-white',
-          warning: 'border-amber-200/80 bg-white',
-          info: 'border-indigo-200/80 bg-white',
+          success: 'border-emerald-200/80 dark:border-emerald-900/60 bg-white dark:bg-zinc-900',
+          error: 'border-rose-200/80 dark:border-rose-900/60 bg-white dark:bg-zinc-900',
+          warning: 'border-amber-200/80 dark:border-amber-900/60 bg-white dark:bg-zinc-900',
+          info: 'border-indigo-200/80 dark:border-indigo-900/60 bg-white dark:bg-zinc-900',
         };
 
         return (
@@ -32,12 +32,12 @@ export const ToastContainer: React.FC = () => {
           >
             <div className="mt-0.5">{icons[toast.type]}</div>
             <div className="flex-1 min-w-0">
-              {toast.title && <h5 className="text-xs font-semibold text-zinc-900">{toast.title}</h5>}
-              <p className="text-xs text-zinc-700 leading-relaxed font-normal">{toast.message}</p>
+              {toast.title && <h5 className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">{toast.title}</h5>}
+              <p className="text-xs text-zinc-700 dark:text-zinc-300 leading-relaxed font-normal">{toast.message}</p>
             </div>
             <button
               onClick={() => removeToast(toast.id)}
-              className="text-zinc-400 hover:text-zinc-600 p-0.5 rounded transition-colors cursor-pointer"
+              className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 p-0.5 rounded transition-colors cursor-pointer"
               aria-label="Dismiss toast"
             >
               <X className="w-3.5 h-3.5" />
