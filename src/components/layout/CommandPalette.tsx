@@ -9,6 +9,7 @@ import {
   Plus,
   ArrowRight,
   X,
+  MapPin,
 } from 'lucide-react';
 import { Badge } from '../common/Badge';
 import { formatCurrency, formatDate } from '../../utils/formatters';
@@ -54,6 +55,7 @@ export const CommandPalette: React.FC = () => {
           { id: 'act-borrow', label: 'Record borrowed money', icon: WalletCards, action: () => openTransactionModal({ initialType: 'BORROWED' }) },
           { id: 'act-note', label: 'Create new note', icon: FileText, action: () => openNoteModal() },
           { id: 'act-person', label: 'Add person / contact', icon: Users, action: () => openPersonModal() },
+          { id: 'act-location', label: 'View current location & satellite map', icon: MapPin, action: () => { setActiveTab('location'); setSearchOpen(false); } },
         ],
       };
     }

@@ -215,12 +215,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const getInitialTab = (): TabType => {
     try {
       const hash = window.location.hash.replace('#', '').toLowerCase();
-      if (['overview', 'tasks', 'money', 'people', 'notes', 'activity', 'settings', 'admin'].includes(hash)) {
+      if (['overview', 'tasks', 'money', 'people', 'notes', 'activity', 'location', 'settings', 'admin'].includes(hash)) {
         return hash as TabType;
       }
       const params = new URLSearchParams(window.location.search);
       const tabParam = params.get('tab')?.toLowerCase();
-      if (tabParam && ['overview', 'tasks', 'money', 'people', 'notes', 'activity', 'settings', 'admin'].includes(tabParam)) {
+      if (tabParam && ['overview', 'tasks', 'money', 'people', 'notes', 'activity', 'location', 'settings', 'admin'].includes(tabParam)) {
         return tabParam as TabType;
       }
     } catch {}
@@ -239,7 +239,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.replace('#', '').toLowerCase();
-      if (['overview', 'tasks', 'money', 'people', 'notes', 'activity', 'settings', 'admin'].includes(hash)) {
+      if (['overview', 'tasks', 'money', 'people', 'notes', 'activity', 'location', 'settings', 'admin'].includes(hash)) {
         setActiveTabState(hash as TabType);
       }
     };

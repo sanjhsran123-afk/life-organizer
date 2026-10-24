@@ -18,6 +18,7 @@ import {
   CheckCircle2,
   Sun,
   Moon,
+  MapPin,
 } from 'lucide-react';
 import { usePwa } from '../../context/PwaContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -80,6 +81,11 @@ export const Sidebar: React.FC = () => {
       id: 'activity',
       label: 'Activity',
       icon: Activity,
+    },
+    {
+      id: 'location',
+      label: 'Location',
+      icon: MapPin,
     },
     {
       id: 'settings',

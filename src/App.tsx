@@ -17,6 +17,7 @@ import { MoneyView } from './components/money/MoneyView';
 import { PeopleView } from './components/people/PeopleView';
 import { NotesView } from './components/notes/NotesView';
 import { ActivityView } from './components/activity/ActivityView';
+import { LocationView } from './components/location/LocationView';
 import { SettingsView } from './components/settings/SettingsView';
 import { AdminPanel } from './components/admin/AdminPanel';
 
@@ -57,6 +58,8 @@ const MainLayout: React.FC = () => {
         return <NotesView />;
       case 'activity':
         return <ActivityView />;
+      case 'location':
+        return <LocationView />;
       case 'settings':
         return <SettingsView />;
       case 'admin':

@@ -17,6 +17,7 @@ import {
   CheckCircle2,
   Sun,
   Moon,
+  MapPin,
 } from 'lucide-react';
 import { usePwa } from '../../context/PwaContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -98,6 +99,18 @@ export const MobileBottomNav: React.FC = () => {
                 <div className="flex items-center gap-3">
                   <Activity className="w-4 h-4 text-zinc-400 dark:text-zinc-500" />
                   <span>Activity Timeline</span>
+                </div>
+              </button>
+
+              <button
+                onClick={() => handleNavClick('location')}
+                className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
+                  activeTab === 'location' ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300' : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <MapPin className="w-4 h-4 text-zinc-400 dark:text-zinc-500" />
+                  <span>Location & Satellite Map</span>
                 </div>
               </button>
 
@@ -198,7 +211,7 @@ export const MobileBottomNav: React.FC = () => {
         <button
           onClick={() => setIsMoreOpen((prev) => !prev)}
           className={`flex flex-col items-center justify-center min-w-[50px] min-h-[44px] py-1 px-1 rounded-xl text-[10px] font-medium transition-colors cursor-pointer ${
-            isMoreOpen || activeTab === 'settings' || activeTab === 'activity' || activeTab === 'admin'
+            isMoreOpen || activeTab === 'settings' || activeTab === 'activity' || activeTab === 'admin' || activeTab === 'location'
               ? 'text-indigo-600 dark:text-indigo-400 font-bold'
               : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200'
           }`}

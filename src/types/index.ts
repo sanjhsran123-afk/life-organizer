@@ -186,4 +186,4 @@ export interface AdminActivityResponse {
   limit: number;
 }
 
-export type TabType = 'overview' | 'tasks' | 'money' | 'people' | 'notes' | 'activity' | 'settings' | 'admin';
+export type TabType = 'overview' | 'tasks' | 'money' | 'people' | 'notes' | 'activity' | 'location' | 'settings' | 'admin';

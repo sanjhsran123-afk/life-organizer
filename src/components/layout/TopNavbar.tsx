@@ -65,6 +65,10 @@ export const TopNavbar: React.FC = () => {
       title: 'Activity Timeline',
       subtitle: 'Chronological feed of your tasks and transactions',
     },
+    location: {
+      title: 'Location & Map',
+      subtitle: 'Real-time coordinates, GPS accuracy & interactive Google Maps satellite view',
+    },
     settings: {
       title: 'Settings & Preferences',
       subtitle: 'Profile, currency, data backups and preferences',
