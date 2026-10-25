@@ -1,0 +1,21 @@
+# Robots.txt for DayLedger Life Organizer App
+# Disallow indexing of private user routes and internal backend endpoints
+User-agent: *
+Allow: /$
+Allow: /manifest.webmanifest
+Allow: /favicon.svg
+Allow: /icons/
+Allow: /assets/
+Disallow: /api/
+Disallow: /admin
+Disallow: /overview
+Disallow: /tasks
+Disallow: /money
+Disallow: /people
+Disallow: /notes
+Disallow: /activity
+Disallow: /location
+Disallow: /settings
+
+# Public XML Sitemap
+Sitemap: https://life-organizer-52s.pages.dev/sitemap.xml

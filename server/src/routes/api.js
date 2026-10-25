@@ -7,6 +7,7 @@ import { NoteModel } from '../models/Note.js';
 import { ActivityModel } from '../models/Activity.js';
 import { UserProfileModel } from '../models/UserProfile.js';
 import { UserModel } from '../models/User.js';
+import { requireAuth } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -23,10 +24,10 @@ const checkDB = (req, res, next) => {
 
 // Helper to filter by authenticated user
 const getUserQuery = (req) => {
-  return req.userId ? { userId: req.userId } : {};
+  return { userId: req.userId };
 };
 
-// Health Check
+// Health Check (Public endpoint for uptime monitors)
 router.get('/health', (req, res) => {
   const isConnected = mongoose.connection.readyState === 1;
   res.json({
@@ -35,6 +36,9 @@ router.get('/health', (req, res) => {
     host: isConnected ? mongoose.connection.host : null,
   });
 });
+
+// Require valid JWT authentication on all subsequent data endpoints
+router.use(requireAuth);
 
 // GET /api/all - Fast bulk loader for application state
 router.get('/all', checkDB, async (req, res) => {

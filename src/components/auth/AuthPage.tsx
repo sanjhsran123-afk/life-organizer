@@ -14,10 +14,7 @@ import {
   ShieldCheck,
   CheckCircle2,
   AlertCircle,
-  History,
   LogOut,
-  ChevronDown,
-  ChevronUp,
   Cake,
   Sun,
   Moon,
@@ -45,7 +42,6 @@ export const AuthPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [storedAccounts, setStoredAccounts] = useState<StoredUserAccount[]>([]);
-  const [showLogsDrawer, setShowLogsDrawer] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -211,24 +207,6 @@ export const AuthPage: React.FC = () => {
       }
     } catch (err: any) {
       setError(err?.message || 'Authentication failed. Please verify your entries.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleQuickTestLogin = async () => {
-    setError(null);
-    setFieldErrors({});
-    setEmail('test@dayledger.app');
-    setPassword('password123');
-    setIsLoading(true);
-    try {
-      await login({
-        email: 'test@dayledger.app',
-        password: 'password123',
-      });
-    } catch (err: any) {
-      setError(err?.message || 'Failed to log in with test credentials.');
     } finally {
       setIsLoading(false);
     }
@@ -770,115 +748,11 @@ export const AuthPage: React.FC = () => {
             )}
           </div>
 
-          {/* 1-Click Quick Test Login (Shown only on login mode) */}
-          {mode === 'login' && (
-            <>
-              <div className="relative my-5">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-zinc-200 dark:border-zinc-800" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-white dark:bg-zinc-900 px-3 text-zinc-400 dark:text-zinc-500 font-medium tracking-wider">
-                    Instant Test Access
-                  </span>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={handleQuickTestLogin}
-                disabled={isLoading}
-                className="w-full flex items-center justify-between p-3 rounded-xl border border-indigo-200 dark:border-indigo-800/80 bg-indigo-50/60 dark:bg-indigo-950/30 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 text-indigo-900 dark:text-indigo-200 transition-all cursor-pointer group shadow-2xs text-left"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
-                    ⚡
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold text-indigo-950 dark:text-indigo-100">
-                      1-Click Test Login
-                    </p>
-                    <p className="text-[11px] text-indigo-600 dark:text-indigo-400 font-mono">
-                      test@dayledger.app / password123
-                    </p>
-                  </div>
-                </div>
-                <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 group-hover:translate-x-0.5 transition-transform">
-                  Fill & Login →
-                </span>
-              </button>
-            </>
-          )}
-        </div>
-
-        {/* Stored Authentication Activity Logs Accordion */}
-        <div className="mt-4 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md border border-zinc-200/80 dark:border-zinc-800 rounded-2xl p-3.5 shadow-sm">
-          <button
-            type="button"
-            onClick={() => setShowLogsDrawer((prev) => !prev)}
-            className="w-full flex items-center justify-between text-left text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer"
-          >
-            <div className="flex items-center gap-2">
-              <History className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-              <span>Stored Auth & Session Logs ({authLogs.length} events recorded)</span>
-            </div>
-            {showLogsDrawer ? (
-              <ChevronUp className="w-4 h-4 text-zinc-400 dark:text-zinc-500" />
-            ) : (
-              <ChevronDown className="w-4 h-4 text-zinc-400 dark:text-zinc-500" />
-            )}
-          </button>
-
-          {showLogsDrawer && (
-            <div className="mt-3 pt-3 border-t border-zinc-100 dark:border-zinc-800 space-y-2 max-h-56 overflow-y-auto pr-1">
-              {authLogs.length === 0 ? (
-                <p className="text-xs text-zinc-400 dark:text-zinc-500 text-center py-2">
-                  No login or logout records yet.
-                </p>
-              ) : (
-                authLogs.map((log) => (
-                  <div
-                    key={log.id}
-                    className="flex items-center justify-between text-xs p-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-100 dark:border-zinc-800"
-                  >
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0 ${
-                          log.type === 'LOGIN'
-                            ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300'
-                            : log.type === 'LOGOUT'
-                            ? 'bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300'
-                            : 'bg-indigo-100 dark:bg-indigo-950/60 text-indigo-800 dark:text-indigo-300'
-                        }`}
-                      >
-                        {log.type}
-                      </span>
-                      <div className="min-w-0">
-                        <p className="font-semibold text-zinc-800 dark:text-zinc-200 truncate leading-tight">
-                          {log.name || log.email}
-                        </p>
-                        <p className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate leading-tight">
-                          {log.email} {log.details ? `• ${log.details}` : ''}
-                        </p>
-                      </div>
-                    </div>
-                    <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-mono shrink-0 ml-2">
-                      {new Date(log.timestamp).toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        second: '2-digit',
-                      })}
-                    </span>
-                  </div>
-                ))
-              )}
-            </div>
-          )}
         </div>
 
         {/* Footer info */}
         <div className="text-center mt-5 text-xs text-zinc-400">
-          <p>Real-life data isolation • Encrypted passwords • Synced to MongoDB</p>
+          <p>Real-life data isolation • Secure bcrypt passwords • Synced to MongoDB</p>
         </div>
       </div>
     </div>

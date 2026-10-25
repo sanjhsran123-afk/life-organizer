@@ -35,3 +35,4 @@ server/.env.*
 # Build output
 dist/
 dist
+android/app/release/

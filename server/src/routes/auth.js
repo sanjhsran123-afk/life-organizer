@@ -18,16 +18,6 @@ export const isConfiguredAdminEmail = (email) => {
   return configured.includes(email.toLowerCase().trim());
 };
 
-// Preset test account credentials
-const TEST_ACCOUNT = {
-  name: 'Test Account',
-  email: 'test@dayledger.app',
-  phone: '+919876543210',
-  age: 24,
-  dateOfBirth: '2002-05-15',
-  password: 'password123',
-};
-
 // Server in-memory Auth Logs storage (fallback)
 export const serverAuthLogs = [];
 
@@ -249,33 +239,11 @@ router.post('/login', async (req, res) => {
     const normalizedEmail = inputIdentifier.toLowerCase();
     const normalizedPhone = normalizePhone(inputIdentifier);
 
-    // Check test credentials
-    const isTestCredentials =
-      (normalizedEmail === TEST_ACCOUNT.email || normalizedPhone === TEST_ACCOUNT.phone) &&
-      password === TEST_ACCOUNT.password;
-
     if (mongoose.connection.readyState === 1) {
       // Find user by either email OR phone
-      let user = await UserModel.findOne({
+      const user = await UserModel.findOne({
         $or: [{ email: normalizedEmail }, { phone: normalizedPhone }],
       });
-
-      // Auto-create test account in DB on first login
-      if (!user && isTestCredentials) {
-        const hashedPassword = await bcrypt.hash(TEST_ACCOUNT.password, 10);
-        user = await UserModel.create({
-          name: TEST_ACCOUNT.name,
-          email: TEST_ACCOUNT.email,
-          phone: TEST_ACCOUNT.phone,
-          age: TEST_ACCOUNT.age,
-          dateOfBirth: TEST_ACCOUNT.dateOfBirth,
-          password: hashedPassword,
-          role: isConfiguredAdminEmail(TEST_ACCOUNT.email) ? 'admin' : 'user',
-          currency: '₹',
-          currencyCode: 'INR',
-          avatarSeed: 'Test',
-        });
-      }
 
       if (!user) {
         return res.status(401).json({ error: 'Invalid credentials. Please verify your email/phone and password.' });

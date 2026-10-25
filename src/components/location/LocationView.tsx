@@ -705,7 +705,7 @@ export const LocationView: React.FC = () => {
                     Add Environment Variable
                   </strong>
                   <p className="mt-0.5">
-                    Set the key in your local <code className="bg-zinc-100 dark:bg-zinc-800 px-1 py-0.5 rounded text-[11px]">.env</code> or Netlify environment variables:
+                    Set the key in your local <code className="bg-zinc-100 dark:bg-zinc-800 px-1 py-0.5 rounded text-[11px]">.env</code> or hosting environment variables (Cloudflare Pages / Netlify):
                   </p>
                   <pre className="mt-1 p-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg font-mono text-[11px] text-zinc-800 dark:text-zinc-200 overflow-x-auto">
                     VITE_GOOGLE_MAPS_EMBED_API_KEY=AIzaSyYourEmbedKeyHere
@@ -731,7 +731,9 @@ export const LocationView: React.FC = () => {
                     <li>
                       <strong>Application Restrictions:</strong> Select <strong>Websites (HTTP referrers)</strong> and enter:
                       <br />
-                      <code>https://your-domain.netlify.app/*</code>
+                      <code>https://&lt;your-project&gt;.pages.dev/*</code> (Cloudflare Pages)
+                      <br />
+                      <code>https://your-domain.netlify.app/*</code> (Netlify fallback)
                       <br />
                       <code>https://localhost/*</code> (allows the embed to load inside local Vite and the Capacitor Android WebView).
                     </li>

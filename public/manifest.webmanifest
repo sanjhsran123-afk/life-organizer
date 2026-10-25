@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "DayLedger — Personal Tasks & Money Manager",
+  "name": "DayLedger — Life Organizer App & Productivity Suite",
   "short_name": "DayLedger",
-  "description": "Keep your tasks, money, contacts, and notes together.",
+  "description": "All-in-one life organizer app for tasks, lent/borrowed money, contacts, notes, and daily routines.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

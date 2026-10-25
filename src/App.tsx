@@ -29,7 +29,7 @@ import { PersonModal } from './components/people/PersonModal';
 import { PersonDetailModal } from './components/people/PersonDetailModal';
 import { NoteModal } from './components/notes/NoteModal';
 import { ToastContainer } from './components/common/ToastContainer';
-import { AuthPage } from './components/auth/AuthPage';
+import { LandingPage } from './components/landing/LandingPage';
 
 const MainLayout: React.FC = () => {
   const { activeTab, isAuthenticated } = useApp();
@@ -37,7 +37,7 @@ const MainLayout: React.FC = () => {
   if (!isAuthenticated) {
     return (
       <>
-        <AuthPage />
+        <LandingPage />
         <ToastContainer />
         <PwaInstallModal />
       </>

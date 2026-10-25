@@ -1,6 +1,6 @@
 # DayLedger iPhone PWA setup
 
-DayLedger is configured to install from Safari as a Home Screen web app. The production site must be served over HTTPS; Netlify provides HTTPS for the deployed site. Localhost can be used for development.
+DayLedger is configured to install from Safari as a Home Screen web app. The production site must be served over HTTPS; Cloudflare Pages and Netlify both provide automatic HTTPS for deployed sites. Localhost can be used for development.
 
 ## Install on iPhone
 
@@ -22,3 +22,9 @@ The app can show its cached interface when offline, but account sign-in and data
 ## Publish updates
 
 The service worker cache version is in `public/sw.js`. Bump `CACHE_NAME` when changing the service worker's caching behavior. The worker removes older DayLedger PWA caches after a new version activates.
+
+## Origin Isolation Note (`pages.dev` vs. `netlify.app`)
+
+A Cloudflare Pages address (`https://<project-name>.pages.dev`) is a completely separate origin from a Netlify address (`https://<site-name>.netlify.app`) under the browser's Same-Origin Policy:
+- **Service Worker & Cache**: The service worker (`sw.js`) and CacheStorage (`dayledger-pwa-v1`) are strictly isolated to the originating host. Visiting the Cloudflare Pages URL registers an independent service worker and creates a separate cache on the `pages.dev` origin.
+- **Client-Side Storage**: Web storage (`localStorage` auth tokens, theme preferences, and cached session data) is also strictly partitioned per-origin. Existing users switching from Netlify to Cloudflare Pages will simply sign in anew on the `pages.dev` domain; account data synchronizes immediately from the shared Render backend API.
