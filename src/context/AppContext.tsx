@@ -30,6 +30,7 @@ import {
   apiLogout,
   getStoredAuthLogs,
   apiGetMe,
+  apiGetFriendRequests,
   setAuthToken,
   clearAuthToken,
   apiAddTask,
@@ -48,7 +49,19 @@ import {
   apiAddActivity,
   apiUpdateProfile,
   apiSeedDatabase,
+  getAuthToken,
 } from '../api';
+import {
+  scheduleTaskReminder,
+  cancelTaskReminder,
+  cancelAllReminders,
+  reconcileReminders,
+  initLocalNotifications,
+  isNativeApp,
+  checkAndRequestPermissions,
+} from '../utils/localNotifications';
+import { isWebPushSupported, subscribeToPushNotifications } from '../utils/webPush';
+import { connectSocket, disconnectSocket } from '../utils/socket';
 
 export interface ToastMessage {
   id: string;
@@ -61,6 +74,7 @@ interface AppContextType {
   // Authentication
   currentUser: AuthUser | null;
   isAuthenticated: boolean;
+  updateCurrentUser: (updates: Partial<AuthUser>) => void;
   login: (credentials: { email: string; password: string }) => Promise<void>;
   register: (credentials: RegisterFormData) => Promise<void>;
   logout: () => void;
@@ -70,6 +84,8 @@ interface AppContextType {
   // Navigation
   activeTab: TabType;
   setActiveTab: (tab: TabType) => void;
+  pendingFriendsCount: number;
+  refreshFriendsCount: () => Promise<void>;
   sidebarCollapsed: boolean;
   setSidebarCollapsed: (collapsed: boolean | ((prev: boolean) => boolean)) => void;
 
@@ -122,6 +138,7 @@ interface AppContextType {
   updateTask: (id: string, task: Partial<Task>) => void;
   deleteTask: (id: string) => void;
   toggleTaskStatus: (id: string) => void;
+  requestReminderPermission: () => Promise<{ granted: boolean; exactAlarmGranted?: boolean; message?: string }>;
 
   // CRUD People
   addPerson: (person: Omit<Person, 'id' | 'createdAt'>) => Person;
@@ -228,6 +245,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const [activeTab, setActiveTabState] = useState<TabType>(getInitialTab);
+  const [pendingFriendsCount, setPendingFriendsCount] = useState<number>(0);
 
   const setActiveTab = useCallback((tab: TabType) => {
     setActiveTabState(tab);
@@ -261,6 +279,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return null;
     }
   });
+
+  const updateCurrentUser = (updates: Partial<AuthUser>) => {
+    setCurrentUser((prev) => {
+      if (!prev) return prev;
+      const updated = { ...prev, ...updates };
+      localStorage.setItem(USER_KEY, JSON.stringify(updated));
+      return updated;
+    });
+  };
 
   // Authentication Logs
   const [authLogs, setAuthLogs] = useState<AuthLogEntry[]>(() => getStoredAuthLogs());
@@ -429,8 +456,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         try {
           const me = await apiGetMe();
           if (mounted && me) {
-            if (me.role && currentUser.role !== me.role) {
-              const updated = { ...currentUser, role: me.role };
+            const hasRoleChange = me.role && currentUser.role !== me.role;
+            const hasPhoneChange =
+              (me.isPhoneVerified !== undefined && currentUser.isPhoneVerified !== me.isPhoneVerified) ||
+              (me.phoneDiscoverable !== undefined && currentUser.phoneDiscoverable !== me.phoneDiscoverable);
+            if (hasRoleChange || hasPhoneChange) {
+              const updated = {
+                ...currentUser,
+                role: me.role || currentUser.role,
+                isPhoneVerified: me.isPhoneVerified ?? currentUser.isPhoneVerified,
+                phoneDiscoverable: me.phoneDiscoverable ?? currentUser.phoneDiscoverable,
+              };
               setCurrentUser(updated);
               localStorage.setItem(USER_KEY, JSON.stringify(updated));
             }
@@ -461,12 +497,34 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (remote.activities) setActivities(remote.activities);
         if (remote.profile) setProfile(remote.profile);
       }
+
+      // 4. Fetch pending friends count
+      if (currentUser) {
+        try {
+          const reqs = await apiGetFriendRequests();
+          if (mounted && reqs) {
+            setPendingFriendsCount(reqs.totalPendingIncoming || 0);
+          }
+        } catch {}
+      }
     };
 
     initBackend();
     return () => {
       mounted = false;
     };
+  }, [currentUser]);
+
+  // Synchronize real-time Socket.io connection with active user session
+  useEffect(() => {
+    if (currentUser) {
+      const token = getAuthToken();
+      if (token) {
+        connectSocket(token);
+      }
+    } else {
+      disconnectSocket();
+    }
   }, [currentUser]);
 
   // Auth Operations
@@ -488,6 +546,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         role: res.user.role || 'user',
         currency: res.user.currency || '₹',
         currencyCode: res.user.currencyCode || 'INR',
+        isPhoneVerified: Boolean(res.user.isPhoneVerified),
+        phoneDiscoverable: Boolean(res.user.phoneDiscoverable),
       };
       setCurrentUser(userObj);
       localStorage.setItem(USER_KEY, JSON.stringify(userObj));
@@ -503,6 +563,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         currency: userObj.currency || '₹',
         currencyCode: userObj.currencyCode || 'INR',
         avatarSeed: userObj.name,
+        isPhoneVerified: userObj.isPhoneVerified,
+        phoneDiscoverable: userObj.phoneDiscoverable,
       }));
 
       // Synchronize their account data from MongoDB backend
@@ -577,6 +639,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const userName = currentUser?.name;
     const userId = currentUser?.id;
     apiLogout(userEmail, userName, userId);
+    cancelAllReminders();
+    disconnectSocket();
     clearAuthToken();
     localStorage.removeItem(USER_KEY);
     setCurrentUser(null);
@@ -733,6 +797,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
     setTasks((prev) => [newTask, ...prev]);
     apiAddTask(newTask);
+    if (newTask.remindMe) {
+      scheduleTaskReminder(newTask);
+    }
     addActivity({
       type: 'task',
       action: 'Created task',
@@ -744,20 +811,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [addActivity, showToast]);
 
   const updateTask = useCallback((id: string, updates: Partial<Task>) => {
+    let updatedTask: Task | undefined;
     setTasks((prev) =>
       prev.map((t) => {
         if (t.id === id) {
-          const updated = { ...t, ...updates };
-          return updated;
+          updatedTask = { ...t, ...updates };
+          return updatedTask;
         }
         return t;
       })
     );
     apiUpdateTask(id, updates);
+    if (updatedTask) {
+      if ((updatedTask as Task).remindMe && (updatedTask as Task).status !== 'completed') {
+        scheduleTaskReminder(updatedTask as Task);
+      } else {
+        cancelTaskReminder(id);
+      }
+    }
     showToast('Task updated', 'info');
   }, [showToast]);
 
   const deleteTask = useCallback((id: string) => {
+    cancelTaskReminder(id);
     const taskToDelete = tasks.find((t) => t.id === id);
     setTasks((prev) => prev.filter((t) => t.id !== id));
     apiDeleteTask(id);
@@ -779,7 +855,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           const nextStatus = isDone ? 'todo' : 'completed';
           const completedAt = isDone ? undefined : new Date().toISOString();
           apiUpdateTask(id, { status: nextStatus, completedAt });
+          const updated = {
+            ...t,
+            status: nextStatus as Task['status'],
+            completedAt,
+          };
           if (!isDone) {
+            cancelTaskReminder(id);
             triggerCelebration();
             showToast(`Task completed! 🎉`, 'success');
             addActivity({
@@ -789,18 +871,112 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               entityId: t.id,
             });
           } else {
+            if (updated.remindMe) {
+              scheduleTaskReminder(updated);
+            }
             showToast(`Task reopened: "${t.title}"`, 'info');
           }
-          return {
-            ...t,
-            status: nextStatus,
-            completedAt,
-          };
+          return updated;
         }
         return t;
       })
     );
   }, [triggerCelebration, showToast, addActivity]);
+
+  const requestReminderPermission = useCallback(async (): Promise<{
+    granted: boolean;
+    exactAlarmGranted?: boolean;
+    message?: string;
+  }> => {
+    if (isNativeApp()) {
+      const perm = await checkAndRequestPermissions();
+      if (!perm.granted) {
+        return {
+          granted: false,
+          exactAlarmGranted: false,
+          message: 'Notification permission is required to receive task reminders.',
+        };
+      }
+      return {
+        granted: true,
+        exactAlarmGranted: perm.exactAlarmGranted,
+        message: !perm.exactAlarmGranted
+          ? 'Standard notifications are on, but exact alarms are restricted. Reminders may be slightly delayed by battery saver.'
+          : undefined,
+      };
+    }
+
+    if (isWebPushSupported()) {
+      const res = await subscribeToPushNotifications();
+      return {
+        granted: res.success,
+        message: res.message,
+      };
+    }
+
+    // Regular browser fallback if Notification API is available
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      const perm = await Notification.requestPermission();
+      return {
+        granted: perm === 'granted',
+        message: perm !== 'granted' ? 'Browser notifications were not allowed.' : undefined,
+      };
+    }
+
+    return { granted: false, message: 'Notifications are not supported in this environment.' };
+  }, []);
+
+  // Initialize native Local Notifications listeners and PWA Web Push messages
+  useEffect(() => {
+    if (isNativeApp()) {
+      initLocalNotifications(
+        (taskId) => {
+          toggleTaskStatus(taskId);
+        },
+        (_taskId) => {
+          showToast('Reminder acknowledged. Take your time!', 'info');
+        }
+      );
+    }
+
+    const handleSwMessage = (event: MessageEvent) => {
+      if (event.data && event.data.type === 'TASK_MARK_COMPLETE') {
+        const taskId = event.data.taskId;
+        if (taskId) {
+          toggleTaskStatus(taskId);
+        }
+      }
+    };
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', handleSwMessage);
+    }
+
+    // Handle open from notification action URL (?action=complete&taskId=...)
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const action = urlParams.get('action');
+      const actionTaskId = urlParams.get('taskId');
+      if (action === 'complete' && actionTaskId) {
+        toggleTaskStatus(actionTaskId);
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, '', newUrl);
+      }
+    }
+
+    return () => {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.removeEventListener('message', handleSwMessage);
+      }
+    };
+  }, [toggleTaskStatus, showToast]);
+
+  // Reconcile reminders on app start / when signed-in user's tasks are loaded
+  useEffect(() => {
+    if (currentUser && tasks.length > 0) {
+      reconcileReminders(tasks);
+    }
+  }, [currentUser, tasks]);
 
   // CRUD People
   const addPerson = useCallback((personData: Omit<Person, 'id' | 'createdAt'>) => {
@@ -1226,6 +1402,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         // Auth
         currentUser,
         isAuthenticated,
+        updateCurrentUser,
         login,
         register,
         logout,
@@ -1233,6 +1410,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         // Navigation
         activeTab,
         setActiveTab,
+        pendingFriendsCount,
+        refreshFriendsCount: async () => {
+          if (!currentUser) return;
+          try {
+            const reqs = await apiGetFriendRequests();
+            setPendingFriendsCount(reqs.totalPendingIncoming || 0);
+          } catch {}
+        },
         sidebarCollapsed,
         setSidebarCollapsed,
         searchOpen,
@@ -1280,6 +1465,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateTask,
         deleteTask,
         toggleTaskStatus,
+        requestReminderPermission,
 
         addPerson,
         updatePerson,

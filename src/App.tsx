@@ -19,6 +19,7 @@ import { NotesView } from './components/notes/NotesView';
 import { ActivityView } from './components/activity/ActivityView';
 import { LocationView } from './components/location/LocationView';
 import { SettingsView } from './components/settings/SettingsView';
+import { FriendsView } from './components/friends/FriendsView';
 import { AdminPanel } from './components/admin/AdminPanel';
 
 // Modals
@@ -30,6 +31,8 @@ import { PersonDetailModal } from './components/people/PersonDetailModal';
 import { NoteModal } from './components/notes/NoteModal';
 import { ToastContainer } from './components/common/ToastContainer';
 import { LandingPage } from './components/landing/LandingPage';
+import { CallProvider } from './context/CallContext';
+import { CallModal } from './components/friends/CallModal';
 
 const MainLayout: React.FC = () => {
   const { activeTab, isAuthenticated } = useApp();
@@ -60,6 +63,8 @@ const MainLayout: React.FC = () => {
         return <ActivityView />;
       case 'location':
         return <LocationView />;
+      case 'friends':
+        return <FriendsView />;
       case 'settings':
         return <SettingsView />;
       case 'admin':
@@ -98,6 +103,7 @@ const MainLayout: React.FC = () => {
       <NoteModal />
       <ToastContainer />
       <PwaInstallModal />
+      <CallModal />
     </div>
   );
 };
@@ -107,7 +113,9 @@ export function App() {
     <ThemeProvider>
       <AppProvider>
         <PwaProvider>
-          <MainLayout />
+          <CallProvider>
+            <MainLayout />
+          </CallProvider>
         </PwaProvider>
       </AppProvider>
     </ThemeProvider>

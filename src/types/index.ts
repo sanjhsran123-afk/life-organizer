@@ -10,6 +10,9 @@ export interface Task {
   priority: TaskPriority;
   category: TaskCategory;
   dueDate: string; // YYYY-MM-DD
+  dueTime?: string; // HH:mm format (optional)
+  deadline?: string; // ISO 8601 UTC timestamp (optional, timezone-safe)
+  remindMe?: boolean; // reminder notification active
   createdAt: string;
   completedAt?: string;
   notes?: string;
@@ -95,6 +98,8 @@ export interface UserProfile {
   currency: string;
   currencyCode: string;
   avatarSeed?: string;
+  isPhoneVerified?: boolean;
+  phoneDiscoverable?: boolean;
 }
 
 export interface AuthUser {
@@ -108,6 +113,45 @@ export interface AuthUser {
   role?: 'user' | 'admin';
   currency?: string;
   currencyCode?: string;
+  isPhoneVerified?: boolean;
+  phoneDiscoverable?: boolean;
+}
+
+export type FriendshipStatus = 'none' | 'pending_sent' | 'pending_received' | 'friends' | 'declined' | 'blocked';
+
+export interface FriendSearchResult {
+  found: boolean;
+  message?: string;
+  user?: {
+    id: string;
+    name: string;
+    avatarSeed: string;
+    friendshipStatus: FriendshipStatus;
+    friendshipId?: string | null;
+  };
+}
+
+export interface FriendItem {
+  id: string;
+  friendshipId: string;
+  name: string;
+  avatarSeed: string;
+  since?: string;
+}
+
+export interface FriendRequestItem {
+  id: string; // friendshipId
+  requesterId?: string;
+  recipientId?: string;
+  name: string;
+  avatarSeed: string;
+  createdAt: string;
+}
+
+export interface BlockedUserItem {
+  id: string;
+  name: string;
+  avatarSeed: string;
 }
 
 export interface RegisterFormData {
@@ -186,4 +230,56 @@ export interface AdminActivityResponse {
   limit: number;
 }
 
-export type TabType = 'overview' | 'tasks' | 'money' | 'people' | 'notes' | 'activity' | 'location' | 'settings' | 'admin';
+export type TabType = 'overview' | 'tasks' | 'money' | 'people' | 'friends' | 'notes' | 'activity' | 'location' | 'settings' | 'admin';
+
+export interface MessageItem {
+  id: string;
+  pairKey: string;
+  senderId: string;
+  recipientId: string;
+  type: 'text' | 'file';
+  text?: string;
+  file?: {
+    key: string;
+    name: string;
+    size: number;
+    mimeType: string;
+  };
+  read: boolean;
+  readAt?: string;
+  createdAt: string;
+}
+
+export type CallStatus =
+  | 'idle'
+  | 'outgoing_ringing'
+  | 'incoming_ringing'
+  | 'connecting'
+  | 'connected'
+  | 'reconnecting'
+  | 'ended';
+
+export interface ActiveCall {
+  callId: string;
+  peerId: string;
+  peerName: string;
+  peerAvatar: string;
+  isIncoming: boolean;
+  isMuted: boolean;
+  status: CallStatus;
+  startedAt?: number;
+  duration: number;
+}
+
+export interface IceServerConfig {
+  iceServers: RTCIceServer[];
+  turnConfigured: boolean;
+  audioConstraints?: MediaTrackConstraints;
+}
+
+export interface CloudCapabilities {
+  r2Configured: boolean;
+  turnConfigured: boolean;
+  maxFileSizeMb: number;
+}
+

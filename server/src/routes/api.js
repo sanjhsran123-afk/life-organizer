@@ -7,6 +7,8 @@ import { NoteModel } from '../models/Note.js';
 import { ActivityModel } from '../models/Activity.js';
 import { UserProfileModel } from '../models/UserProfile.js';
 import { UserModel } from '../models/User.js';
+import { PushSubscriptionModel } from '../models/PushSubscription.js';
+import { getVapidPublicKey } from '../services/pushService.js';
 import { requireAuth } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -109,7 +111,36 @@ router.post('/tasks', checkDB, async (req, res) => {
 
 router.put('/tasks/:id', checkDB, async (req, res) => {
   try {
-    const task = await TaskModel.findOneAndUpdate({ id: req.params.id }, req.body, { new: true });
+    const filter = { id: req.params.id, ...getUserQuery(req) };
+    const updates = { ...req.body };
+
+    // If deadline, time, or reminder was updated, reset reminder sent flags
+    if (
+      updates.deadline !== undefined ||
+      updates.dueDate !== undefined ||
+      updates.dueTime !== undefined ||
+      updates.remindMe !== undefined
+    ) {
+      updates.reminder5MinSent = false;
+      updates.reminderDueSent = false;
+    }
+
+    const task = await TaskModel.findOneAndUpdate(filter, updates, { new: true });
+    if (!task) return res.status(404).json({ error: 'Task not found' });
+    res.json(task);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+router.post('/tasks/:id/complete', checkDB, async (req, res) => {
+  try {
+    const filter = { id: req.params.id, ...getUserQuery(req) };
+    const task = await TaskModel.findOneAndUpdate(
+      filter,
+      { status: 'completed', completedAt: new Date().toISOString() },
+      { new: true }
+    );
     if (!task) return res.status(404).json({ error: 'Task not found' });
     res.json(task);
   } catch (err) {
@@ -119,7 +150,8 @@ router.put('/tasks/:id', checkDB, async (req, res) => {
 
 router.delete('/tasks/:id', checkDB, async (req, res) => {
   try {
-    const result = await TaskModel.findOneAndDelete({ id: req.params.id });
+    const filter = { id: req.params.id, ...getUserQuery(req) };
+    const result = await TaskModel.findOneAndDelete(filter);
     if (!result) return res.status(404).json({ error: 'Task not found' });
     res.json({ success: true, message: 'Task deleted' });
   } catch (err) {
@@ -389,6 +421,57 @@ router.post('/seed', checkDB, async (req, res) => {
     if (profile && !req.userId) await UserProfileModel.create(profile);
 
     res.json({ success: true, message: 'Database state updated' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ==================== WEB PUSH NOTIFICATIONS ====================
+
+// GET /api/push/public-key - Retrieve VAPID public key for browser PushManager subscription
+router.get('/push/public-key', (req, res) => {
+  const publicKey = getVapidPublicKey();
+  res.json({ publicKey });
+});
+
+// POST /api/push/subscribe - Store Web Push subscription for authenticated user
+router.post('/push/subscribe', checkDB, async (req, res) => {
+  try {
+    const { endpoint, keys, userAgent } = req.body;
+    if (!endpoint || !keys?.p256dh || !keys?.auth) {
+      return res.status(400).json({ error: 'Invalid push subscription payload' });
+    }
+
+    await PushSubscriptionModel.findOneAndUpdate(
+      { endpoint },
+      {
+        userId: req.userId,
+        endpoint,
+        keys: {
+          p256dh: keys.p256dh,
+          auth: keys.auth,
+        },
+        userAgent: userAgent || req.headers['user-agent'] || '',
+      },
+      { upsert: true, new: true }
+    );
+
+    res.status(201).json({ success: true, message: 'Push subscription registered' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/push/unsubscribe - Remove Web Push subscription
+router.post('/push/unsubscribe', checkDB, async (req, res) => {
+  try {
+    const { endpoint } = req.body;
+    if (!endpoint) {
+      return res.status(400).json({ error: 'Endpoint is required' });
+    }
+
+    await PushSubscriptionModel.deleteOne({ endpoint, userId: req.userId });
+    res.json({ success: true, message: 'Push subscription removed' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

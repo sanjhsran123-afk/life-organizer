@@ -1,3 +1,4 @@
+import http from 'http';
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -6,13 +7,23 @@ import { connectDB } from './config/db.js';
 import apiRoutes from './routes/api.js';
 import authRoutes from './routes/auth.js';
 import adminRoutes from './routes/admin.js';
+import friendsRoutes from './routes/friends.js';
+import messagesRoutes from './routes/messages.js';
+import callsRoutes from './routes/calls.js';
 import { authMiddleware } from './middleware/auth.js';
+import { initSocketServer } from './services/socketService.js';
+
+import { configureWebPush } from './services/pushService.js';
+import { startReminderScheduler } from './services/reminderScheduler.js';
 
 // Support both root .env and ./server/.env for local development
 dotenv.config();
 if (!process.env.MONGODB_URI) {
   dotenv.config({ path: './server/.env' });
 }
+
+// Initialize Web Push VAPID configuration from environment variables
+configureWebPush();
 
 const app = express();
 // Render automatically provides PORT via environment variable
@@ -116,9 +127,12 @@ app.get(['/health', '/api/health'], (req, res) => {
 // Authentication middleware to populate req.userId & req.user from JWT
 app.use(authMiddleware);
 
-// Mount Auth, Admin, and API routes
+// Mount Auth, Admin, Friends, Messages, Calls, and Data API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/friends', friendsRoutes);
+app.use('/api/messages', messagesRoutes);
+app.use('/api/calls', callsRoutes);
 app.use('/api', apiRoutes);
 
 // Root informational route (sanitized to NEVER leak credentials or secrets)
@@ -127,8 +141,10 @@ app.get('/', (req, res) => {
   res.json({
     name: 'DayLedger API',
     status: 'Running',
-    version: '1.1.0',
+    version: '1.2.0',
     authEnabled: true,
+    messagingEnabled: true,
+    callingEnabled: true,
     database: mongoose.connection.readyState === 1
       ? 'Connected'
       : process.env.MONGODB_URI
@@ -137,8 +153,14 @@ app.get('/', (req, res) => {
   });
 });
 
-// Start Express server on 0.0.0.0 to accept public web requests on Render
-app.listen(PORT, '0.0.0.0', () => {
+// Create Node HTTP Server to attach both Express and Socket.io
+const httpServer = http.createServer(app);
+
+// Initialize Socket.io server with CORS allowlist
+initSocketServer(httpServer, Array.from(productionAllowedOrigins));
+
+// Start server on 0.0.0.0 to accept public web requests on Render
+httpServer.listen(PORT, '0.0.0.0', () => {
   const isAtlas = Boolean(process.env.MONGODB_URI && process.env.MONGODB_URI.includes('mongodb+srv'));
   const safeDbTarget = process.env.MONGODB_URI
     ? (isAtlas ? 'MongoDB Atlas Cluster' : 'Configured MongoDB URI')
@@ -146,6 +168,11 @@ app.listen(PORT, '0.0.0.0', () => {
 
   console.log(`🚀 DayLedger Backend Server is running on port ${PORT}`);
   console.log(`📡 MongoDB Target: ${safeDbTarget}`);
-  connectDB();
+  connectDB().then(() => {
+    startReminderScheduler();
+  }).catch(() => {
+    // Also start scheduler so it resumes once DB reconnects
+    startReminderScheduler();
+  });
 });
 

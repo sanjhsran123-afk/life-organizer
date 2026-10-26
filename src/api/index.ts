@@ -12,6 +12,13 @@ import {
   AdminOverviewStats,
   AdminUsersResponse,
   AdminActivityResponse,
+  FriendSearchResult,
+  FriendItem,
+  FriendRequestItem,
+  BlockedUserItem,
+  MessageItem,
+  IceServerConfig,
+  CloudCapabilities,
 } from '../types';
 
 /**
@@ -96,6 +103,8 @@ export interface AuthResponse {
     role?: 'user' | 'admin';
     currency?: string;
     currencyCode?: string;
+    isPhoneVerified?: boolean;
+    phoneDiscoverable?: boolean;
   };
   message?: string;
   isOfflineSession?: boolean;
@@ -633,4 +642,307 @@ export async function apiRecordSessionExpired(email?: string, name?: string, use
     });
   } catch {}
 }
+
+// ==================== WEB PUSH NOTIFICATIONS ====================
+
+export async function getPushPublicKey(): Promise<string | null> {
+  try {
+    const res = await fetch(`${API_BASE}/push/public-key`, {
+      headers: getHeaders(),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.publicKey || null;
+  } catch {
+    return null;
+  }
+}
+
+export async function apiSubscribePush(subscription: PushSubscriptionJSON): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_BASE}/push/subscribe`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({
+        endpoint: subscription.endpoint,
+        keys: subscription.keys,
+        userAgent: navigator.userAgent,
+      }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+export async function apiUnsubscribePush(endpoint: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_BASE}/push/unsubscribe`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ endpoint }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+export async function apiCompleteTask(id: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_BASE}/tasks/${id}/complete`, {
+      method: 'POST',
+      headers: getHeaders(),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+// ==================== PHONE VERIFICATION & DISCOVERABILITY ====================
+
+export async function apiSendPhoneVerificationCode(): Promise<{ success: boolean; message: string }> {
+  const res = await fetch(`${API_BASE}/auth/phone/send-code`, {
+    method: 'POST',
+    headers: getHeaders(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Failed to send verification code.');
+  return data;
+}
+
+export async function apiVerifyPhoneCode(code: string): Promise<{ success: boolean; message: string; isPhoneVerified: boolean }> {
+  const res = await fetch(`${API_BASE}/auth/phone/verify-code`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ code }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Failed to verify phone code.');
+  return data;
+}
+
+export async function apiUpdatePhoneDiscoverability(discoverable: boolean): Promise<{ success: boolean; phoneDiscoverable: boolean; message: string }> {
+  const res = await fetch(`${API_BASE}/auth/phone/discoverability`, {
+    method: 'PUT',
+    headers: getHeaders(),
+    body: JSON.stringify({ discoverable }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Failed to update discoverability.');
+  return data;
+}
+
+// ==================== FRIENDS & RELATIONSHIPS ====================
+
+export async function apiSearchFriendByPhone(phone: string): Promise<FriendSearchResult> {
+  const res = await fetch(`${API_BASE}/friends/search?phone=${encodeURIComponent(phone)}`, {
+    headers: getHeaders(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Search failed.');
+  return data;
+}
+
+export async function apiSendFriendRequest(recipientId: string): Promise<{ success: boolean; message: string; status?: string }> {
+  const res = await fetch(`${API_BASE}/friends/request`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ recipientId }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Failed to send friend request.');
+  return data;
+}
+
+export async function apiGetFriends(): Promise<{ friends: FriendItem[] }> {
+  const res = await fetch(`${API_BASE}/friends`, {
+    headers: getHeaders(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Failed to load friends.');
+  return data;
+}
+
+export async function apiGetFriendRequests(): Promise<{ incoming: FriendRequestItem[]; outgoing: FriendRequestItem[]; totalPendingIncoming: number }> {
+  const res = await fetch(`${API_BASE}/friends/requests`, {
+    headers: getHeaders(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Failed to load friend requests.');
+  return data;
+}
+
+export async function apiAcceptFriendRequest(id: string): Promise<{ success: boolean; message: string }> {
+  const res = await fetch(`${API_BASE}/friends/requests/${id}/accept`, {
+    method: 'POST',
+    headers: getHeaders(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Failed to accept friend request.');
+  return data;
+}
+
+export async function apiDeclineFriendRequest(id: string): Promise<{ success: boolean; message: string }> {
+  const res = await fetch(`${API_BASE}/friends/requests/${id}/decline`, {
+    method: 'POST',
+    headers: getHeaders(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Failed to decline friend request.');
+  return data;
+}
+
+export async function apiCancelFriendRequest(id: string): Promise<{ success: boolean; message: string }> {
+  const res = await fetch(`${API_BASE}/friends/requests/${id}/cancel`, {
+    method: 'POST',
+    headers: getHeaders(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Failed to cancel friend request.');
+  return data;
+}
+
+export async function apiRemoveFriend(id: string): Promise<{ success: boolean; message: string }> {
+  const res = await fetch(`${API_BASE}/friends/${id}`, {
+    method: 'DELETE',
+    headers: getHeaders(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Failed to remove friend.');
+  return data;
+}
+
+export async function apiBlockUser(targetUserId: string): Promise<{ success: boolean; message: string }> {
+  const res = await fetch(`${API_BASE}/friends/block`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ targetUserId }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Failed to block user.');
+  return data;
+}
+
+export async function apiUnblockUser(targetUserId: string): Promise<{ success: boolean; message: string }> {
+  const res = await fetch(`${API_BASE}/friends/unblock`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ targetUserId }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Failed to unblock user.');
+  return data;
+}
+
+export async function apiGetBlockedUsers(): Promise<{ blockedUsers: BlockedUserItem[] }> {
+  const res = await fetch(`${API_BASE}/friends/blocked`, {
+    headers: getHeaders(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Failed to load blocked users.');
+  return data;
+}
+
+// ==================== MESSAGING & PRIVATE FILES ====================
+
+export async function apiGetMessages(
+  friendId: string,
+  limit = 50,
+  before?: string
+): Promise<{ messages: MessageItem[]; hasMore: boolean }> {
+  let url = `${API_BASE}/messages/${encodeURIComponent(friendId)}?limit=${limit}`;
+  if (before) {
+    url += `&before=${encodeURIComponent(before)}`;
+  }
+  const res = await fetch(url, { headers: getHeaders() });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Failed to load messages.');
+  return data;
+}
+
+export async function apiSendMessage(
+  friendId: string,
+  text: string
+): Promise<{ success: boolean; message: MessageItem }> {
+  const res = await fetch(`${API_BASE}/messages/${encodeURIComponent(friendId)}`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ text }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Failed to send message.');
+  return data;
+}
+
+export async function apiUploadMessageFile(
+  friendId: string,
+  file: File
+): Promise<{ success: boolean; message: MessageItem }> {
+  const token = getAuthToken();
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const res = await fetch(`${API_BASE}/messages/${encodeURIComponent(friendId)}/files`, {
+    method: 'POST',
+    headers,
+    body: formData,
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'File upload failed.');
+  return data;
+}
+
+export async function apiGetDownloadUrl(
+  messageId: string
+): Promise<{ downloadUrl: string; fileName: string; expiresIn: number }> {
+  const res = await fetch(`${API_BASE}/messages/files/${encodeURIComponent(messageId)}/download`, {
+    headers: getHeaders(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Failed to obtain download link.');
+  return data;
+}
+
+export async function apiGetUnreadMessageCounts(): Promise<{
+  unreadByFriend: Record<string, number>;
+  totalUnread: number;
+}> {
+  const res = await fetch(`${API_BASE}/messages/unread-counts`, {
+    headers: getHeaders(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Failed to load unread counts.');
+  return data;
+}
+
+// ==================== WEBRTC CALLS & CAPABILITIES ====================
+
+export async function apiGetIceServers(): Promise<IceServerConfig> {
+  const res = await fetch(`${API_BASE}/calls/ice-servers`, {
+    headers: getHeaders(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Failed to load ICE servers.');
+  return data;
+}
+
+export async function apiGetCloudCapabilities(): Promise<CloudCapabilities> {
+  const res = await fetch(`${API_BASE}/calls/capabilities`, {
+    headers: getHeaders(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Failed to load capabilities.');
+  return data;
+}
+
+
+
 
