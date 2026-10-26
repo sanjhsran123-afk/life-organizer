@@ -25,7 +25,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import {
-  apiSearchFriendByPhone,
+  apiSearchFriends,
   apiSendFriendRequest,
   apiGetFriends,
   apiGetFriendRequests,
@@ -63,7 +63,7 @@ export const FriendsView: React.FC = () => {
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
 
   // Search state
-  const [searchPhone, setSearchPhone] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchResult, setSearchResult] = useState<FriendSearchResult | null>(null);
 
@@ -125,21 +125,21 @@ export const FriendsView: React.FC = () => {
     loadData();
   }, [loadData]);
 
-  // Handle phone search
+  // Handle account search (by exact phone or exact full name)
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!searchPhone.trim()) {
-      showToast('Please enter a phone number to search.', 'warning');
+    if (!searchQuery.trim()) {
+      showToast('Please enter a phone number or full name to search.', 'warning');
       return;
     }
 
     setSearchLoading(true);
     setSearchResult(null);
     try {
-      const res = await apiSearchFriendByPhone(searchPhone.trim());
+      const res = await apiSearchFriends(searchQuery.trim());
       setSearchResult(res);
       if (!res.found) {
-        showToast(res.message || 'No registered DayLedger account found with this verified phone number.', 'info');
+        showToast(res.message || 'No registered DayLedger account found matching your search.', 'info');
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Search failed';
@@ -154,14 +154,16 @@ export const FriendsView: React.FC = () => {
     try {
       const res = await apiSendFriendRequest(recipientId);
       showToast(res.message || 'Friend request sent!', 'success');
-      // Update search result status
-      if (searchResult && searchResult.user && searchResult.user.id === recipientId) {
+      // Update search result status across all matching profiles
+      if (searchResult) {
         setSearchResult({
           ...searchResult,
-          user: {
-            ...searchResult.user,
-            friendshipStatus: 'pending_sent',
-          },
+          user: searchResult.user?.id === recipientId
+            ? { ...searchResult.user, friendshipStatus: 'pending_sent' }
+            : searchResult.user,
+          users: searchResult.users?.map((u) =>
+            u.id === recipientId ? { ...u, friendshipStatus: 'pending_sent' } : u
+          ),
         });
       }
       loadData();
@@ -177,6 +179,17 @@ export const FriendsView: React.FC = () => {
       const res = await apiAcceptFriendRequest(requestId);
       showToast(res.message || 'Friend request accepted!', 'success');
       loadData();
+      if (searchResult) {
+        setSearchResult({
+          ...searchResult,
+          user: searchResult.user?.friendshipId === requestId
+            ? { ...searchResult.user, friendshipStatus: 'friends' }
+            : searchResult.user,
+          users: searchResult.users?.map((u) =>
+            u.friendshipId === requestId ? { ...u, friendshipStatus: 'friends' } : u
+          ),
+        });
+      }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to accept request.';
       showToast(msg, 'error');
@@ -189,6 +202,17 @@ export const FriendsView: React.FC = () => {
       const res = await apiDeclineFriendRequest(requestId);
       showToast(res.message || 'Friend request declined.', 'info');
       loadData();
+      if (searchResult) {
+        setSearchResult({
+          ...searchResult,
+          user: searchResult.user?.friendshipId === requestId
+            ? { ...searchResult.user, friendshipStatus: 'none', friendshipId: null }
+            : searchResult.user,
+          users: searchResult.users?.map((u) =>
+            u.friendshipId === requestId ? { ...u, friendshipStatus: 'none', friendshipId: null } : u
+          ),
+        });
+      }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to decline request.';
       showToast(msg, 'error');
@@ -201,10 +225,15 @@ export const FriendsView: React.FC = () => {
       const res = await apiCancelFriendRequest(requestId);
       showToast(res.message || 'Request cancelled.', 'info');
       loadData();
-      if (searchResult?.user) {
+      if (searchResult) {
         setSearchResult({
           ...searchResult,
-          user: { ...searchResult.user, friendshipStatus: 'none' },
+          user: searchResult.user?.friendshipId === requestId
+            ? { ...searchResult.user, friendshipStatus: 'none', friendshipId: null }
+            : searchResult.user,
+          users: searchResult.users?.map((u) =>
+            u.friendshipId === requestId ? { ...u, friendshipStatus: 'none', friendshipId: null } : u
+          ),
         });
       }
     } catch (err: unknown) {
@@ -277,7 +306,7 @@ export const FriendsView: React.FC = () => {
             <span>Friends</span>
           </h1>
           <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-            Connect with verified DayLedger users, manage friend requests, and maintain your privacy.
+            Connect with DayLedger users, manage friend requests, and maintain your privacy.
           </p>
         </div>
 
@@ -296,32 +325,10 @@ export const FriendsView: React.FC = () => {
             onClick={() => setActiveTab('search')}
             icon={<UserPlus className="w-3.5 h-3.5" />}
           >
-            Find by Phone
+            Find Friends
           </Button>
         </div>
       </div>
-
-      {/* Discoverability Notice / Status Banner */}
-      {!currentUser?.phoneDiscoverable && (
-        <div className="rounded-xl p-3.5 border border-amber-200/80 bg-amber-50/70 dark:bg-amber-950/30 dark:border-amber-900/40 flex items-start sm:items-center justify-between gap-3 flex-col sm:flex-row">
-          <div className="flex items-start gap-2.5">
-            <Lock className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-            <div>
-              <p className="text-xs font-semibold text-amber-900 dark:text-amber-200">
-                Your phone number is currently private
-              </p>
-              <p className="text-[11px] text-amber-700 dark:text-amber-300 mt-0.5">
-                {!currentUser?.isPhoneVerified
-                  ? 'Verify your phone number in Settings to opt in to friend discovery.'
-                  : 'Turn on discoverability in Settings if you want friends to find you by phone.'}
-              </p>
-            </div>
-          </div>
-          <span className="text-[11px] font-semibold text-amber-800 dark:text-amber-300 shrink-0 px-2.5 py-1 bg-amber-100 dark:bg-amber-900/60 rounded-lg">
-            {!currentUser?.isPhoneVerified ? 'Unverified' : 'Private'}
-          </span>
-        </div>
-      )}
 
       {/* Navigation Pills */}
       <div className="flex items-center gap-1.5 border-b border-zinc-200 dark:border-zinc-800 pb-2 overflow-x-auto">
@@ -372,7 +379,7 @@ export const FriendsView: React.FC = () => {
           }`}
         >
           <Search className="w-3.5 h-3.5" />
-          <span>Find by Phone</span>
+          <span>Find Friends</span>
         </button>
 
         <button
@@ -388,20 +395,20 @@ export const FriendsView: React.FC = () => {
         </button>
       </div>
 
-      {/* ==================== TAB: FIND BY PHONE ==================== */}
+      {/* ==================== TAB: FIND FRIENDS ==================== */}
       {activeTab === 'search' && (
         <div className="space-y-4 max-w-2xl">
           <Card className="p-5">
             <div className="flex items-center gap-2.5 mb-3">
               <div className="p-2 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400">
-                <Phone className="w-4 h-4" />
+                <Search className="w-4 h-4" />
               </div>
               <div>
                 <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                  Search Registered Account
+                  Search Accounts
                 </h3>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                  Only accounts with verified phone numbers and enabled discoverability can be found.
+                  Search existing DayLedger accounts by exact normalized phone number or exact full name.
                 </p>
               </div>
             </div>
@@ -409,9 +416,9 @@ export const FriendsView: React.FC = () => {
             <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2 mt-4">
               <div className="flex-1">
                 <Input
-                  value={searchPhone}
-                  onChange={(e) => setSearchPhone(e.target.value)}
-                  placeholder="e.g. +91 98765 43210"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Enter exact phone number (e.g. +91 98765 43210) or exact full name..."
                   required
                 />
               </div>
@@ -429,7 +436,7 @@ export const FriendsView: React.FC = () => {
             <div className="rounded-lg p-3 bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-100 dark:border-zinc-800 mt-4 text-[11px] text-zinc-500 dark:text-zinc-400 flex items-start gap-2">
               <Lock className="w-3.5 h-3.5 shrink-0 mt-0.5 text-zinc-400" />
               <span>
-                <strong>Zero spam guarantee:</strong> If no matching account is found, DayLedger will never send an invite or create an account. The person’s phone number and email are never shown in results.
+                <strong>Zero spam guarantee:</strong> Phone numbers and email addresses are never displayed. Friend requests are sent only to existing accounts and remain pending until accepted or rejected.
               </span>
             </div>
           </Card>
@@ -437,79 +444,107 @@ export const FriendsView: React.FC = () => {
           {/* Search Results Display */}
           {searchResult && (
             <div>
-              {searchResult.found && searchResult.user ? (
-                <Card className="p-4 border-indigo-200/80 dark:border-indigo-900/50">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-indigo-500 to-violet-600 text-white font-bold flex items-center justify-center text-sm shadow-xs">
-                        {searchResult.user.avatarSeed?.substring(0, 2).toUpperCase() || 'U'}
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                            {searchResult.user.name}
-                          </h4>
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 flex items-center gap-1">
-                            <UserCheck className="w-2.5 h-2.5" />
-                            <span>Verified</span>
-                          </span>
+              {searchResult.found ? (
+                (() => {
+                  const resultsList = searchResult.users && searchResult.users.length > 0
+                    ? searchResult.users
+                    : (searchResult.user ? [searchResult.user] : []);
+
+                  if (resultsList.length === 0) {
+                    return (
+                      <Card className="p-6 text-center">
+                        <div className="mx-auto w-10 h-10 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-400 mb-2">
+                          <Search className="w-5 h-5" />
                         </div>
-                        <p className="text-xs text-zinc-400">DayLedger Member</p>
-                      </div>
+                        <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                          No Matching Account
+                        </h4>
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 max-w-sm mx-auto">
+                          {searchResult.message || 'No DayLedger account was found matching this phone number or full name.'}
+                        </p>
+                      </Card>
+                    );
+                  }
+
+                  return (
+                    <div className="space-y-3">
+                      {resultsList.length > 1 && (
+                        <div className="flex items-center gap-2 p-2.5 rounded-lg bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200/60 dark:border-indigo-900/40 text-xs font-semibold text-indigo-900 dark:text-indigo-300">
+                          <Sparkles className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                          <span>Found {resultsList.length} matching accounts. Choose the profile you want to connect with:</span>
+                        </div>
+                      )}
+                      {resultsList.map((matchedUser) => (
+                        <Card key={matchedUser.id} className="p-4 border-indigo-200/80 dark:border-indigo-900/50">
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-3">
+                              <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-indigo-500 to-violet-600 text-white font-bold flex items-center justify-center text-sm shadow-xs shrink-0">
+                                {matchedUser.avatarSeed?.substring(0, 2).toUpperCase() || 'U'}
+                              </div>
+                              <div>
+                                <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                                  {matchedUser.name}
+                                </h4>
+                                <p className="text-xs text-zinc-400">DayLedger Member</p>
+                              </div>
+                            </div>
+
+                            <div className="shrink-0">
+                              {matchedUser.friendshipStatus === 'friends' && (
+                                <Badge variant="success">Already Friends</Badge>
+                              )}
+
+                              {matchedUser.friendshipStatus === 'pending_sent' && (
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="warning">Request Pending</Badge>
+                                  {matchedUser.friendshipId && (
+                                    <Button
+                                      variant="outline"
+                                      size="xs"
+                                      onClick={() => handleCancelRequest(matchedUser.friendshipId!)}
+                                    >
+                                      Cancel
+                                    </Button>
+                                  )}
+                                </div>
+                              )}
+
+                              {matchedUser.friendshipStatus === 'pending_received' && (
+                                <div className="flex items-center gap-1.5">
+                                  <Button
+                                    variant="primary"
+                                    size="xs"
+                                    onClick={() => matchedUser.friendshipId && handleAccept(matchedUser.friendshipId)}
+                                  >
+                                    Accept
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="xs"
+                                    onClick={() => matchedUser.friendshipId && handleDecline(matchedUser.friendshipId)}
+                                  >
+                                    Decline
+                                  </Button>
+                                </div>
+                              )}
+
+                              {matchedUser.friendshipStatus === 'none' && (
+                                <Button
+                                  variant="primary"
+                                  size="sm"
+                                  onClick={() => handleSendRequest(matchedUser.id)}
+                                  icon={<UserPlus className="w-3.5 h-3.5" />}
+                                >
+                                  Add Friend
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        </Card>
+                      ))}
                     </div>
-
-                    <div className="shrink-0">
-                      {searchResult.user.friendshipStatus === 'friends' && (
-                        <Badge variant="success">Already Friends</Badge>
-                      )}
-
-                      {searchResult.user.friendshipStatus === 'pending_sent' && (
-                        <div className="flex items-center gap-2">
-                          <Badge variant="warning">Request Pending</Badge>
-                          {searchResult.user.friendshipId && (
-                            <Button
-                              variant="outline"
-                              size="xs"
-                              onClick={() => handleCancelRequest(searchResult.user!.friendshipId!)}
-                            >
-                              Cancel
-                            </Button>
-                          )}
-                        </div>
-                      )}
-
-                      {searchResult.user.friendshipStatus === 'pending_received' && (
-                        <div className="flex items-center gap-1.5">
-                          <Button
-                            variant="primary"
-                            size="xs"
-                            onClick={() => searchResult.user?.friendshipId && handleAccept(searchResult.user.friendshipId)}
-                          >
-                            Accept
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="xs"
-                            onClick={() => searchResult.user?.friendshipId && handleDecline(searchResult.user.friendshipId)}
-                          >
-                            Decline
-                          </Button>
-                        </div>
-                      )}
-
-                      {searchResult.user.friendshipStatus === 'none' && (
-                        <Button
-                          variant="primary"
-                          size="sm"
-                          onClick={() => handleSendRequest(searchResult.user!.id)}
-                          icon={<UserPlus className="w-3.5 h-3.5" />}
-                        >
-                          Add Friend
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </Card>
+                  );
+                })()
               ) : (
                 <Card className="p-6 text-center">
                   <div className="mx-auto w-10 h-10 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-400 mb-2">
@@ -519,7 +554,7 @@ export const FriendsView: React.FC = () => {
                     No Matching Account
                   </h4>
                   <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 max-w-sm mx-auto">
-                    No DayLedger account was found with this verified phone number, or the user has not enabled discoverability.
+                    {searchResult.message || 'No DayLedger account was found matching this phone number or full name.'}
                   </p>
                 </Card>
               )}

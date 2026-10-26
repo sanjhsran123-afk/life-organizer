@@ -71,7 +71,7 @@ export const TopNavbar: React.FC = () => {
     },
     friends: {
       title: 'Friends & Connections',
-      subtitle: 'Lookup registered users by phone, manage incoming requests & friendships',
+      subtitle: 'Lookup registered users by phone or name, manage incoming requests & friendships',
     },
     settings: {
       title: 'Settings & Preferences',

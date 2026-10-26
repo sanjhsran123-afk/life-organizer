@@ -34,83 +34,109 @@ const normalizePhone = (phone) => {
   return phone.replace(/[\s\-\(\)\.]/g, '').trim();
 };
 
+// Helper to escape regex special characters
+const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 /**
- * GET /api/friends/search?phone=...
- * Search ONLY existing DayLedger accounts with verified phone numbers and opt-in discoverability.
- * Does NOT reveal phone numbers, emails, or create ghost accounts.
+ * GET /api/friends/search?query=... (or ?phone=... or ?name=...)
+ * Search ONLY existing DayLedger accounts by exact normalized phone number or exact full name.
+ * Does NOT require phone or account verification.
+ * Does NOT reveal phone numbers or emails.
  */
 router.get('/search', phoneSearchLimiter, async (req, res) => {
   try {
-    const rawPhone = req.query.phone;
-    if (!rawPhone || typeof rawPhone !== 'string') {
-      return res.status(400).json({ error: 'Please enter a valid phone number to search.' });
+    const rawQuery = req.query.query || req.query.q || req.query.phone || req.query.name;
+    if (!rawQuery || typeof rawQuery !== 'string' || !rawQuery.trim()) {
+      return res.status(400).json({ error: 'Please enter a valid phone number or full name to search.' });
     }
 
-    const normalized = normalizePhone(rawPhone);
-    if (normalized.length < 7) {
-      return res.status(400).json({ error: 'Phone number is too short.' });
-    }
+    const searchTerm = rawQuery.trim();
+    const normalized = normalizePhone(searchTerm);
+    const isPhoneCandidate = /^\+?[0-9]{7,15}$/.test(normalized);
 
-    // 1. Search ONLY existing users where isPhoneVerified is TRUE and phoneDiscoverable is TRUE
-    // Match exact normalized phone or without leading '+'
-    const phoneCandidates = [normalized];
-    if (normalized.startsWith('+')) {
-      phoneCandidates.push(normalized.substring(1));
-    } else {
-      phoneCandidates.push(`+${normalized}`);
-    }
-
-    const target = await UserModel.findOne({
-      phone: { $in: phoneCandidates },
-      isPhoneVerified: true,
-      phoneDiscoverable: true,
-      _id: { $ne: req.userId },
-    }).select('_id name avatarSeed isPhoneVerified phoneDiscoverable');
-
-    // 2. If no matching verified & discoverable account exists, return clean not found
-    // NEVER send invitations or create ghost accounts
-    if (!target) {
-      return res.json({
-        found: false,
-        message: 'No DayLedger account found with this verified phone number.',
-      });
-    }
-
-    const targetId = target._id.toString();
-
-    // 3. Inspect existing friendship / block status using canonical pairKey
-    const pairKey = getPairKey(req.userId, targetId);
-    const existing = await FriendshipModel.findOne({ pairKey });
-
-    // If blocked, do not reveal the user exists to protect safety
-    if (existing && existing.status === 'blocked') {
-      return res.json({
-        found: false,
-        message: 'No DayLedger account found with this verified phone number.',
-      });
-    }
-
-    let friendshipStatus = 'none';
-    if (existing) {
-      if (existing.status === 'accepted') {
-        friendshipStatus = 'friends';
-      } else if (existing.status === 'pending') {
-        friendshipStatus = existing.requesterId === req.userId ? 'pending_sent' : 'pending_received';
-      } else if (existing.status === 'declined') {
-        friendshipStatus = 'none';
+    const phoneCandidates = [];
+    if (isPhoneCandidate) {
+      phoneCandidates.push(normalized);
+      if (normalized.startsWith('+')) {
+        phoneCandidates.push(normalized.substring(1));
+      } else {
+        phoneCandidates.push(`+${normalized}`);
       }
     }
 
-    // 4. Return safe public profile ONLY (name and avatar). Never leak phone or email.
-    res.json({
-      found: true,
-      user: {
+    const orConditions = [];
+    if (isPhoneCandidate) {
+      orConditions.push({ phone: { $in: phoneCandidates } });
+    }
+    if (searchTerm.length > 0) {
+      orConditions.push({ name: { $regex: new RegExp(`^${escapeRegex(searchTerm)}$`, 'i') } });
+    }
+
+    // 1. Search ONLY existing users matching exact normalized phone or exact full name
+    // Exclude the current signed-in user
+    const targets = await UserModel.find({
+      $and: [
+        { _id: { $ne: req.userId } },
+        { $or: orConditions },
+      ],
+    }).select('_id name avatarSeed');
+
+    // 2. If no matching account exists, return clean not found
+    if (!targets || targets.length === 0) {
+      return res.json({
+        found: false,
+        message: 'No DayLedger account found matching your search.',
+        users: [],
+      });
+    }
+
+    // 3. Inspect existing friendship / block status using canonical pairKey
+    // Safety check: Filter out any users where either party has blocked the other
+    const results = [];
+    for (const target of targets) {
+      const targetId = target._id.toString();
+      const pairKey = getPairKey(req.userId, targetId);
+      const existing = await FriendshipModel.findOne({ pairKey });
+
+      // If blocked, do not reveal the user exists to protect safety
+      if (existing && existing.status === 'blocked') {
+        continue;
+      }
+
+      let friendshipStatus = 'none';
+      if (existing) {
+        if (existing.status === 'accepted') {
+          friendshipStatus = 'friends';
+        } else if (existing.status === 'pending') {
+          friendshipStatus = existing.requesterId === req.userId ? 'pending_sent' : 'pending_received';
+        } else if (existing.status === 'declined') {
+          friendshipStatus = 'none';
+        }
+      }
+
+      // Safe public profile ONLY (name and avatar). Never leak phone or email.
+      results.push({
         id: targetId,
         name: target.name,
         avatarSeed: target.avatarSeed || target.name,
         friendshipStatus,
         friendshipId: existing?._id ? existing._id.toString() : null,
-      },
+      });
+    }
+
+    if (results.length === 0) {
+      return res.json({
+        found: false,
+        message: 'No DayLedger account found matching your search.',
+        users: [],
+      });
+    }
+
+    // Return all matching profiles so the requester can choose (e.g. if names match multiple accounts)
+    res.json({
+      found: true,
+      users: results,
+      user: results[0],
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -119,7 +145,7 @@ router.get('/search', phoneSearchLimiter, async (req, res) => {
 
 /**
  * POST /api/friends/request
- * Send a friend request to an existing verified user.
+ * Send a friend request to an existing user.
  * Request remains stored in 'pending' state until recipient accepts.
  */
 router.post('/request', async (req, res) => {
@@ -133,15 +159,11 @@ router.post('/request', async (req, res) => {
       return res.status(400).json({ error: 'You cannot send a friend request to yourself.' });
     }
 
-    // 1. Verify recipient account exists, is verified, and discoverable
-    const recipient = await UserModel.findOne({
-      _id: recipientId,
-      isPhoneVerified: true,
-      phoneDiscoverable: true,
-    });
+    // 1. Verify recipient account exists
+    const recipient = await UserModel.findById(recipientId);
 
     if (!recipient) {
-      return res.status(404).json({ error: 'User not found or is not discoverable.' });
+      return res.status(404).json({ error: 'User not found.' });
     }
 
     // 2. Inspect existing relationship by canonical pairKey (enforces single relationship per pair atomically)

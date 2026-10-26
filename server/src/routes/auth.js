@@ -601,42 +601,4 @@ router.post('/phone/verify-code', phoneVerifyCodeLimiter, async (req, res) => {
   }
 });
 
-// PUT /api/auth/phone/discoverability - Toggle phone discoverability (requires verified phone)
-router.put('/phone/discoverability', async (req, res) => {
-  try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'Authentication required' });
-    }
-    const token = authHeader.split(' ')[1];
-    const decoded = jwt.verify(token, JWT_SECRET);
-
-    const { discoverable } = req.body;
-    const shouldBeDiscoverable = Boolean(discoverable);
-
-    const user = await UserModel.findById(decoded.userId || decoded.id);
-    if (!user) return res.status(404).json({ error: 'User not found' });
-
-    // Strict rule: Discoverability can ONLY be turned on if phone is verified
-    if (shouldBeDiscoverable && !user.isPhoneVerified) {
-      return res.status(403).json({
-        error: 'You must verify your phone number before making it discoverable.',
-      });
-    }
-
-    user.phoneDiscoverable = shouldBeDiscoverable;
-    await user.save();
-
-    res.json({
-      success: true,
-      phoneDiscoverable: user.phoneDiscoverable,
-      message: user.phoneDiscoverable
-        ? 'Your verified phone number is now discoverable by friends on DayLedger.'
-        : 'Your phone number is now private and cannot be found by search.',
-    });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
 export default router;

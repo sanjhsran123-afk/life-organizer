@@ -723,27 +723,19 @@ export async function apiVerifyPhoneCode(code: string): Promise<{ success: boole
   return data;
 }
 
-export async function apiUpdatePhoneDiscoverability(discoverable: boolean): Promise<{ success: boolean; phoneDiscoverable: boolean; message: string }> {
-  const res = await fetch(`${API_BASE}/auth/phone/discoverability`, {
-    method: 'PUT',
-    headers: getHeaders(),
-    body: JSON.stringify({ discoverable }),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Failed to update discoverability.');
-  return data;
-}
 
 // ==================== FRIENDS & RELATIONSHIPS ====================
 
-export async function apiSearchFriendByPhone(phone: string): Promise<FriendSearchResult> {
-  const res = await fetch(`${API_BASE}/friends/search?phone=${encodeURIComponent(phone)}`, {
+export async function apiSearchFriends(query: string): Promise<FriendSearchResult> {
+  const res = await fetch(`${API_BASE}/friends/search?query=${encodeURIComponent(query)}`, {
     headers: getHeaders(),
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || 'Search failed.');
   return data;
 }
+
+export const apiSearchFriendByPhone = apiSearchFriends;
 
 export async function apiSendFriendRequest(recipientId: string): Promise<{ success: boolean; message: string; status?: string }> {
   const res = await fetch(`${API_BASE}/friends/request`, {

@@ -6,7 +6,6 @@ import { Select } from '../common/Select';
 import { Button } from '../common/Button';
 import { ConfirmModal } from '../common/ConfirmModal';
 import {
-  Settings,
   User,
   Coins,
   Palette,
@@ -17,26 +16,13 @@ import {
   Trash2,
   CheckCircle2,
   Shield,
-  ShieldCheck,
-  History,
-  Sparkles,
   LogOut,
   Smartphone,
   Sun,
   Moon,
-  Lock,
-  AlertCircle,
-  Loader2,
-  Check,
 } from 'lucide-react';
 import { usePwa } from '../../context/PwaContext';
 import { useTheme } from '../../context/ThemeContext';
-import {
-  apiSendPhoneVerificationCode,
-  apiVerifyPhoneCode,
-  apiUpdatePhoneDiscoverability,
-} from '../../api';
-
 export const SettingsView: React.FC = () => {
   const {
     profile,
@@ -70,66 +56,7 @@ export const SettingsView: React.FC = () => {
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
   const [isClearConfirmOpen, setIsClearConfirmOpen] = useState(false);
 
-  // Phone verification & discoverability state
-  const [isVerifyingPhone, setIsVerifyingPhone] = useState(false);
-  const [verificationCode, setVerificationCode] = useState('');
-  const [phoneSending, setPhoneSending] = useState(false);
-  const [phoneVerifying, setPhoneVerifying] = useState(false);
-  const [updatingDiscoverable, setUpdatingDiscoverable] = useState(false);
-
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleSendCode = async () => {
-    if (!currentUser?.phone) {
-      showToast('No phone number is registered on this account.', 'error');
-      return;
-    }
-    setPhoneSending(true);
-    try {
-      const res = await apiSendPhoneVerificationCode();
-      setIsVerifyingPhone(true);
-      showToast(res.message || 'Verification code sent.', 'info');
-    } catch (err: any) {
-      showToast(err.message || 'Phone verification is currently unavailable.', 'error');
-    } finally {
-      setPhoneSending(false);
-    }
-  };
-
-  const handleVerifyCode = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!verificationCode.trim()) return;
-    setPhoneVerifying(true);
-    try {
-      const res = await apiVerifyPhoneCode(verificationCode.trim());
-      updateCurrentUser({ isPhoneVerified: true });
-      setIsVerifyingPhone(false);
-      setVerificationCode('');
-      showToast(res.message || 'Phone number verified successfully!', 'success');
-    } catch (err: any) {
-      showToast(err.message || 'Invalid or expired verification code.', 'error');
-    } finally {
-      setPhoneVerifying(false);
-    }
-  };
-
-  const handleToggleDiscoverability = async () => {
-    if (!currentUser?.isPhoneVerified) {
-      showToast('Please verify your phone number before enabling discoverability.', 'warning');
-      return;
-    }
-    const targetState = !currentUser.phoneDiscoverable;
-    setUpdatingDiscoverable(true);
-    try {
-      const res = await apiUpdatePhoneDiscoverability(targetState);
-      updateCurrentUser({ phoneDiscoverable: res.phoneDiscoverable });
-      showToast(res.message || 'Privacy setting updated.', 'success');
-    } catch (err: any) {
-      showToast(err.message || 'Failed to update discoverability.', 'error');
-    } finally {
-      setUpdatingDiscoverable(false);
-    }
-  };
 
   const handleProfileSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -276,7 +203,7 @@ export const SettingsView: React.FC = () => {
           </form>
         </Card>
 
-        {/* Phone Verification & Friend Privacy Card */}
+        {/* Phone & Friend Privacy Card */}
         <Card>
           <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800">
             <div className="flex items-center gap-2">
@@ -285,17 +212,6 @@ export const SettingsView: React.FC = () => {
                 Phone & Friend Privacy
               </h3>
             </div>
-            {currentUser?.isPhoneVerified ? (
-              <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800 flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3" />
-                Verified
-              </span>
-            ) : (
-              <span className="text-[11px] font-semibold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-2.5 py-0.5 rounded-full border border-amber-200 dark:border-amber-800 flex items-center gap-1">
-                <Lock className="w-3 h-3" />
-                Unverified (Default)
-              </span>
-            )}
           </div>
 
           <div className="pt-4 space-y-4">
@@ -308,105 +224,19 @@ export const SettingsView: React.FC = () => {
                   {currentUser?.phone || 'No phone number provided'}
                 </span>
               </div>
-              {!currentUser?.isPhoneVerified && currentUser?.phone && !isVerifyingPhone && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handleSendCode}
-                  disabled={phoneSending}
-                  icon={phoneSending ? <Loader2 className="w-3 h-3 animate-spin" /> : <ShieldCheck className="w-3 h-3 text-indigo-600" />}
-                >
-                  {phoneSending ? 'Sending OTP...' : 'Verify Now'}
-                </Button>
-              )}
             </div>
 
-            {/* Verification Form if active */}
-            {isVerifyingPhone && (
-              <form onSubmit={handleVerifyCode} className="p-3.5 bg-indigo-50/60 dark:bg-indigo-950/30 rounded-xl border border-indigo-200 dark:border-indigo-900/60 space-y-3 animate-pop-in">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h4 className="text-xs font-bold text-indigo-950 dark:text-indigo-200">
-                      Enter Verification Code
-                    </h4>
-                    <p className="text-[11px] text-indigo-700 dark:text-indigo-300 mt-0.5">
-                      Enter the 6-digit code sent to your registered phone number.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => { setIsVerifyingPhone(false); setVerificationCode(''); }}
-                    className="text-[11px] text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 cursor-pointer"
-                  >
-                    Cancel
-                  </button>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Input
-                    value={verificationCode}
-                    onChange={(e) => setVerificationCode(e.target.value)}
-                    placeholder="Enter 6-digit OTP"
-                    maxLength={6}
-                    className="font-mono text-center tracking-widest text-sm"
-                    required
-                  />
-                  <Button
-                    type="submit"
-                    size="sm"
-                    variant="primary"
-                    disabled={phoneVerifying || verificationCode.trim().length < 6}
-                    icon={phoneVerifying ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
-                  >
-                    {phoneVerifying ? 'Verifying...' : 'Submit'}
-                  </Button>
-                </div>
-              </form>
-            )}
-
-            {/* Discoverability Toggle */}
-            <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800 space-y-3">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <h4 className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
-                    Allow Friends to Find Me by Phone
-                  </h4>
-                  <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5 max-w-xs">
-                    {currentUser?.isPhoneVerified
-                      ? 'When active, registered DayLedger users can find your account and send friend requests.'
-                      : 'Requires phone verification first. Defaults to private.'}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleToggleDiscoverability}
-                  disabled={!currentUser?.isPhoneVerified || updatingDiscoverable}
-                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                    !currentUser?.isPhoneVerified
-                      ? 'bg-zinc-200 dark:bg-zinc-800 cursor-not-allowed opacity-60'
-                      : currentUser?.phoneDiscoverable
-                      ? 'bg-indigo-600'
-                      : 'bg-zinc-300 dark:bg-zinc-700'
-                  }`}
-                  aria-pressed={currentUser?.phoneDiscoverable}
-                >
-                  <span
-                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                      currentUser?.phoneDiscoverable ? 'translate-x-5' : 'translate-x-0'
-                    }`}
-                  />
-                </button>
-              </div>
-
-              {/* Informational policy box */}
-              <div className="p-2.5 rounded-lg bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200/50 dark:border-zinc-700/50 text-[11px] text-zinc-500 dark:text-zinc-400 space-y-1">
-                <p>
-                  • Friend requests stay pending on the server until you sign in to accept or decline.
-                </p>
-                <p>
-                  • Your phone number is never exposed in search results or shared with users who haven't been accepted.
-                </p>
-              </div>
+            {/* Informational policy box */}
+            <div className="p-3 rounded-lg bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200/50 dark:border-zinc-700/50 text-[11px] text-zinc-500 dark:text-zinc-400 space-y-1.5">
+              <p>
+                • Signed-in DayLedger users can search for registered accounts by exact normalized phone number or exact full name.
+              </p>
+              <p>
+                • Your phone number and email address are never exposed in search results.
+              </p>
+              <p>
+                • Friend requests stay pending on the server until you sign in to accept or decline.
+              </p>
             </div>
           </div>
         </Card>

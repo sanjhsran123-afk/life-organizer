@@ -119,16 +119,19 @@ export interface AuthUser {
 
 export type FriendshipStatus = 'none' | 'pending_sent' | 'pending_received' | 'friends' | 'declined' | 'blocked';
 
+export interface FriendSearchResultItem {
+  id: string;
+  name: string;
+  avatarSeed: string;
+  friendshipStatus: FriendshipStatus;
+  friendshipId?: string | null;
+}
+
 export interface FriendSearchResult {
   found: boolean;
   message?: string;
-  user?: {
-    id: string;
-    name: string;
-    avatarSeed: string;
-    friendshipStatus: FriendshipStatus;
-    friendshipId?: string | null;
-  };
+  user?: FriendSearchResultItem;
+  users?: FriendSearchResultItem[];
 }
 
 export interface FriendItem {
