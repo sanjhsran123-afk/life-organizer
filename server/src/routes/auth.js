@@ -2,11 +2,30 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
+import crypto from 'crypto';
 import { UserModel } from '../models/User.js';
 import { AuthActivityModel } from '../models/AuthActivity.js';
 import { JWT_SECRET } from '../middleware/auth.js';
+import { isSmsConfigured, sendVerificationSms } from '../services/smsService.js';
+import { createRateLimiter } from '../middleware/rateLimiter.js';
 
 const router = express.Router();
+
+// Rate limiter for phone verification code requests (max 5 requests per 15 min per user/IP)
+const phoneSendCodeLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  maxRequests: 5,
+  message: 'Too many verification code requests. Please wait 15 minutes before requesting again.',
+  keyGenerator: (req) => req.userId || req.ip || req.headers['x-forwarded-for'] || 'anonymous',
+});
+
+// Rate limiter for phone verification code attempts (max 10 attempts per 15 min per user/IP)
+const phoneVerifyCodeLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  maxRequests: 10,
+  message: 'Too many verification code attempts. Please wait 15 minutes before trying again.',
+  keyGenerator: (req) => req.userId || req.ip || req.headers['x-forwarded-for'] || 'anonymous',
+});
 
 // Helper to check if an email matches configured ADMIN_EMAILS in .env
 export const isConfiguredAdminEmail = (email) => {
@@ -209,6 +228,8 @@ router.post('/register', async (req, res) => {
           role: newUser.role,
           currency: newUser.currency,
           currencyCode: newUser.currencyCode,
+          isPhoneVerified: Boolean(newUser.isPhoneVerified),
+          phoneDiscoverable: Boolean(newUser.phoneDiscoverable),
         },
       });
     } else {
@@ -284,6 +305,8 @@ router.post('/login', async (req, res) => {
           role: user.role || 'user',
           currency: user.currency,
           currencyCode: user.currencyCode,
+          isPhoneVerified: Boolean(user.isPhoneVerified),
+          phoneDiscoverable: Boolean(user.phoneDiscoverable),
         },
       });
     } else {
@@ -381,6 +404,8 @@ router.get('/me', async (req, res) => {
           role: user.role || 'user',
           currency: user.currency,
           currencyCode: user.currencyCode,
+          isPhoneVerified: Boolean(user.isPhoneVerified),
+          phoneDiscoverable: Boolean(user.phoneDiscoverable),
         },
       });
     } else {
@@ -390,6 +415,227 @@ router.get('/me', async (req, res) => {
     }
   } catch (err) {
     res.status(401).json({ error: 'Invalid or expired session token' });
+  }
+});
+
+// ==================== PHONE VERIFICATION & DISCOVERABILITY ====================
+
+// POST /api/auth/phone/send-code - Send 6-digit verification code via configured SMS provider
+router.post('/phone/send-code', phoneSendCodeLimiter, async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+    const token = authHeader.split(' ')[1];
+    const decoded = jwt.verify(token, JWT_SECRET);
+
+    const user = await UserModel.findById(decoded.userId || decoded.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    if (!user.phone) {
+      return res.status(400).json({ error: 'No phone number registered on this account.' });
+    }
+
+    // 1. Check if SMS provider is configured. If not, verification is strictly unavailable.
+    if (!isSmsConfigured()) {
+      return res.status(503).json({
+        error: 'SMS service is not configured on this server. Phone verification is currently unavailable.',
+        code: 'SMS_NOT_CONFIGURED',
+      });
+    }
+
+    const now = Date.now();
+
+    // 2. Resend Cooldown limit (minimum 60 seconds between OTP dispatches)
+    if (user.phoneVerificationLastSent) {
+      const elapsed = (now - new Date(user.phoneVerificationLastSent).getTime()) / 1000;
+      if (elapsed < 60) {
+        const waitSeconds = Math.ceil(60 - elapsed);
+        return res.status(429).json({
+          error: `Please wait ${waitSeconds} seconds before requesting a new verification code.`,
+          retryAfter: waitSeconds,
+        });
+      }
+    }
+
+    // 3. Hourly resend limit (max 5 requests per hour)
+    if (!user.phoneVerificationHourlyReset || new Date(user.phoneVerificationHourlyReset).getTime() < now) {
+      user.phoneVerificationHourlyCount = 0;
+      user.phoneVerificationHourlyReset = new Date(now + 60 * 60 * 1000);
+    }
+    if ((user.phoneVerificationHourlyCount || 0) >= 5) {
+      return res.status(429).json({
+        error: 'Hourly verification request limit reached (max 5 requests per hour). Please try again later.',
+      });
+    }
+
+    // 4. Generate cryptographically secure 6-digit code
+    const code = crypto.randomInt(100000, 1000000).toString();
+
+    // 5. Protect stored value: Salt and hash with SHA-256 before saving
+    const salt = crypto.randomBytes(16).toString('hex');
+    const hash = crypto.createHash('sha256').update(code + salt + (JWT_SECRET || '')).digest('hex');
+
+    user.phoneVerificationHash = `${salt}:${hash}`;
+    user.phoneVerificationExpires = new Date(now + 10 * 60 * 1000); // 10 minutes
+    user.phoneVerificationAttempts = 0;
+    user.phoneVerificationLastSent = new Date(now);
+    user.phoneVerificationHourlyCount = (user.phoneVerificationHourlyCount || 0) + 1;
+    await user.save();
+
+    // 6. Deliver via SMS provider. Never log the plaintext OTP.
+    try {
+      await sendVerificationSms(user.phone, code);
+    } catch (smsErr) {
+      // Clear pending hash if delivery failed so user is not stuck with unreceived code
+      user.phoneVerificationHash = undefined;
+      user.phoneVerificationExpires = undefined;
+      await user.save();
+      return res.status(502).json({
+        error: `Failed to deliver verification SMS: ${smsErr.message || 'SMS service error'}. Please try again later.`,
+      });
+    }
+
+    // 7. Clean response: NO demo code returned, NO OTP logged
+    res.json({
+      success: true,
+      message: 'Verification code sent to your registered phone number.',
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/auth/phone/verify-code - Verify submitted code with attempt limits
+router.post('/phone/verify-code', phoneVerifyCodeLimiter, async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+    const token = authHeader.split(' ')[1];
+    const decoded = jwt.verify(token, JWT_SECRET);
+
+    const { code } = req.body;
+    if (!code || typeof code !== 'string') {
+      return res.status(400).json({ error: 'Verification code is required.' });
+    }
+
+    const user = await UserModel.findById(decoded.userId || decoded.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    // 1. Check if an active verification code exists
+    if (!user.phoneVerificationHash || !user.phoneVerificationExpires) {
+      return res.status(400).json({
+        error: 'No active verification code found. Please request a new code.',
+      });
+    }
+
+    // 2. Check expiration
+    if (new Date(user.phoneVerificationExpires).getTime() < Date.now()) {
+      user.phoneVerificationHash = undefined;
+      user.phoneVerificationExpires = undefined;
+      await user.save();
+      return res.status(400).json({
+        error: 'Verification code has expired. Please request a new code.',
+      });
+    }
+
+    // 3. Check attempt limit (max 5 failed attempts per code)
+    if ((user.phoneVerificationAttempts || 0) >= 5) {
+      user.phoneVerificationHash = undefined;
+      user.phoneVerificationExpires = undefined;
+      await user.save();
+      return res.status(429).json({
+        error: 'Maximum verification attempts exceeded. Code has been invalidated. Please request a new code.',
+      });
+    }
+
+    // 4. Verify submitted code using timing-safe hash comparison
+    const [salt, storedHash] = user.phoneVerificationHash.split(':');
+    const computedHash = crypto
+      .createHash('sha256')
+      .update(code.trim() + salt + (JWT_SECRET || ''))
+      .digest('hex');
+
+    const isMatch =
+      storedHash &&
+      storedHash.length === computedHash.length &&
+      crypto.timingSafeEqual(Buffer.from(storedHash), Buffer.from(computedHash));
+
+    if (!isMatch) {
+      user.phoneVerificationAttempts = (user.phoneVerificationAttempts || 0) + 1;
+      const remaining = 5 - user.phoneVerificationAttempts;
+
+      if (remaining <= 0) {
+        user.phoneVerificationHash = undefined;
+        user.phoneVerificationExpires = undefined;
+        await user.save();
+        return res.status(429).json({
+          error: 'Maximum verification attempts exceeded. Code has been invalidated. Please request a new code.',
+        });
+      }
+
+      await user.save();
+      return res.status(400).json({
+        error: `Invalid verification code. ${remaining} attempt${remaining === 1 ? '' : 's'} remaining before code is invalidated.`,
+      });
+    }
+
+    // 5. Code matched: Mark phone verified and clear verification secrets
+    user.isPhoneVerified = true;
+    user.phoneVerificationHash = undefined;
+    user.phoneVerificationExpires = undefined;
+    user.phoneVerificationAttempts = 0;
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Phone number verified successfully.',
+      isPhoneVerified: true,
+      phoneDiscoverable: Boolean(user.phoneDiscoverable),
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PUT /api/auth/phone/discoverability - Toggle phone discoverability (requires verified phone)
+router.put('/phone/discoverability', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+    const token = authHeader.split(' ')[1];
+    const decoded = jwt.verify(token, JWT_SECRET);
+
+    const { discoverable } = req.body;
+    const shouldBeDiscoverable = Boolean(discoverable);
+
+    const user = await UserModel.findById(decoded.userId || decoded.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    // Strict rule: Discoverability can ONLY be turned on if phone is verified
+    if (shouldBeDiscoverable && !user.isPhoneVerified) {
+      return res.status(403).json({
+        error: 'You must verify your phone number before making it discoverable.',
+      });
+    }
+
+    user.phoneDiscoverable = shouldBeDiscoverable;
+    await user.save();
+
+    res.json({
+      success: true,
+      phoneDiscoverable: user.phoneDiscoverable,
+      message: user.phoneDiscoverable
+        ? 'Your verified phone number is now discoverable by friends on DayLedger.'
+        : 'Your phone number is now private and cannot be found by search.',
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

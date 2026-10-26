@@ -69,6 +69,10 @@ export const TopNavbar: React.FC = () => {
       title: 'Location & Map',
       subtitle: 'Real-time coordinates, GPS accuracy & interactive Google Maps satellite view',
     },
+    friends: {
+      title: 'Friends & Connections',
+      subtitle: 'Lookup registered users by phone, manage incoming requests & friendships',
+    },
     settings: {
       title: 'Settings & Preferences',
       subtitle: 'Profile, currency, data backups and preferences',

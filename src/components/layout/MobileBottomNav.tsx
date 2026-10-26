@@ -18,13 +18,14 @@ import {
   Sun,
   Moon,
   MapPin,
+  UserPlus,
 } from 'lucide-react';
 import { usePwa } from '../../context/PwaContext';
 import { useTheme } from '../../context/ThemeContext';
 import { Avatar } from '../common/Avatar';
 
 export const MobileBottomNav: React.FC = () => {
-  const { activeTab, setActiveTab, currentUser, profile, logout } = useApp();
+  const { activeTab, setActiveTab, currentUser, profile, pendingFriendsCount, logout } = useApp();
   const { isInstalled, isIPhone, triggerInstall } = usePwa();
   const { theme, toggleTheme, isDark } = useTheme();
   const [isMoreOpen, setIsMoreOpen] = useState(false);
@@ -112,6 +113,23 @@ export const MobileBottomNav: React.FC = () => {
                   <MapPin className="w-4 h-4 text-zinc-400 dark:text-zinc-500" />
                   <span>Location & Satellite Map</span>
                 </div>
+              </button>
+
+              <button
+                onClick={() => handleNavClick('friends')}
+                className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
+                  activeTab === 'friends' ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300' : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <UserPlus className="w-4 h-4 text-zinc-400 dark:text-zinc-500" />
+                  <span>Friends & Connections</span>
+                </div>
+                {pendingFriendsCount > 0 && (
+                  <span className="text-[10px] bg-indigo-600 text-white font-bold px-2 py-0.5 rounded-full">
+                    {pendingFriendsCount} pending
+                  </span>
+                )}
               </button>
 
               <button

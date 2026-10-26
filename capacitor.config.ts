@@ -9,6 +9,13 @@ const config: CapacitorConfig = {
     // Uses secure local scheme for asset serving without opening external URLs
     androidScheme: 'https',
   },
+  plugins: {
+    LocalNotifications: {
+      smallIcon: 'ic_launcher_round',
+      iconColor: '#4f46e5',
+      sound: 'final.mp3',
+    },
+  },
 };
 
 export default config;

@@ -19,6 +19,7 @@ import {
   Sun,
   Moon,
   MapPin,
+  UserPlus,
 } from 'lucide-react';
 import { usePwa } from '../../context/PwaContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -33,6 +34,7 @@ export const Sidebar: React.FC = () => {
     stats,
     profile,
     currentUser,
+    pendingFriendsCount,
     logout,
   } = useApp();
 
@@ -71,6 +73,13 @@ export const Sidebar: React.FC = () => {
       id: 'people',
       label: 'People',
       icon: Users,
+    },
+    {
+      id: 'friends',
+      label: 'Friends',
+      icon: UserPlus,
+      badge: pendingFriendsCount > 0 ? pendingFriendsCount : undefined,
+      badgeVariant: 'primary',
     },
     {
       id: 'notes',

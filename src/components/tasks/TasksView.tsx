@@ -20,6 +20,7 @@ import {
   Trash2,
   AlertCircle,
   Tag,
+  Bell,
 } from 'lucide-react';
 import { Task, TaskCategory, TaskPriority, TaskStatus } from '../../types';
 import {
@@ -402,7 +403,7 @@ export const TasksView: React.FC = () => {
                   )}
 
                   {/* Category & Due Date shown on phone screens */}
-                  <div className="flex sm:hidden items-center gap-2 mt-1 text-[11px]">
+                  <div className="flex sm:hidden items-center gap-2 mt-1 text-[11px] flex-wrap">
                     <Badge size="xs" variant="neutral">
                       {task.category}
                     </Badge>
@@ -413,7 +414,14 @@ export const TasksView: React.FC = () => {
                     >
                       <Calendar className="w-3 h-3 text-zinc-400" />
                       {formatRelativeDate(task.dueDate)}
+                      {task.dueTime && <span className="text-zinc-400 dark:text-zinc-500">• {task.dueTime}</span>}
                     </span>
+                    {task.remindMe && (
+                      <span className="inline-flex items-center gap-0.5 text-[10px] text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-1.5 py-0.5 rounded-full font-medium" title="Reminder set">
+                        <Bell className="w-2.5 h-2.5" />
+                        <span>Alert</span>
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -430,7 +438,15 @@ export const TasksView: React.FC = () => {
                   >
                     <Calendar className="w-3 h-3 text-zinc-400" />
                     {formatRelativeDate(task.dueDate)}
+                    {task.dueTime && <span className="text-zinc-400 dark:text-zinc-500">at {task.dueTime}</span>}
                   </span>
+
+                  {task.remindMe && (
+                    <span className="inline-flex items-center gap-1 text-[11px] text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-full font-medium" title="Reminder set">
+                      <Bell className="w-3 h-3" />
+                      <span>Reminder</span>
+                    </span>
+                  )}
                 </div>
 
                 {/* Row actions */}
@@ -533,14 +549,20 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onToggle, onEdit, onDelete, c
         </Badge>
       </div>
 
-      <div className="flex items-center justify-between pt-2.5 mt-2 border-t border-zinc-100 text-[11px]">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between pt-2.5 mt-2 border-t border-zinc-100 dark:border-zinc-800 text-[11px]">
+        <div className="flex items-center gap-2 flex-wrap">
           <Badge size="xs" variant="neutral">
             {task.category}
           </Badge>
-          <span className={`font-medium ${overdue ? 'text-rose-600' : 'text-zinc-500'}`}>
+          <span className={`font-medium ${overdue ? 'text-rose-600 dark:text-rose-400' : 'text-zinc-500 dark:text-zinc-400'}`}>
             {formatRelativeDate(task.dueDate)}
+            {task.dueTime && ` • ${task.dueTime}`}
           </span>
+          {task.remindMe && (
+            <span className="text-amber-500 dark:text-amber-400" title="Reminder active">
+              <Bell className="w-3 h-3 inline" />
+            </span>
+          )}
         </div>
 
         <div className="flex items-center gap-1">
