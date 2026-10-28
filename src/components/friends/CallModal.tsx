@@ -12,6 +12,7 @@ import {
   Sparkles,
   ShieldCheck,
   X,
+  Settings,
 } from 'lucide-react';
 
 export const CallModal: React.FC = () => {
@@ -23,6 +24,9 @@ export const CallModal: React.FC = () => {
     toggleMute,
     callError,
     clearCallError,
+    isPermissionPermanentlyDenied,
+    openAppSettings,
+    openCallingSetup,
   } = useCall();
 
   if (callError && !activeCall) {
@@ -33,10 +37,33 @@ export const CallModal: React.FC = () => {
             <PhoneOff className="w-5 h-5" />
           </div>
           <div>
-            <h4 className="text-xs font-bold text-rose-900 dark:text-rose-100">Call Notice</h4>
+            <h4 className="text-xs font-bold text-rose-900 dark:text-rose-100">Microphone Required</h4>
             <p className="text-xs text-rose-700 dark:text-rose-300 mt-0.5 leading-relaxed">
               {callError}
             </p>
+            <div className="mt-2.5 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  clearCallError();
+                  openCallingSetup();
+                }}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-sm transition-all cursor-pointer active:scale-95"
+              >
+                <Settings className="w-3.5 h-3.5" />
+                <span>Set Up Calling</span>
+              </button>
+              {isPermissionPermanentlyDenied && (
+                <button
+                  type="button"
+                  onClick={openAppSettings}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold shadow-sm transition-all cursor-pointer active:scale-95"
+                >
+                  <Settings className="w-3.5 h-3.5" />
+                  <span>Open Settings</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
         <button
@@ -181,9 +208,9 @@ export const CallModal: React.FC = () => {
           )}
         </div>
 
-        {/* Disclaimer about closed-app calls */}
+        {/* Background Calling Notice */}
         <p className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-4 leading-tight">
-          Note: Internet calls connect while both users have the website or app open. Ringing while the app is completely closed requires background push.
+          Internet audio calls connect once answered. On the Android app, push notifications ring incoming calls even while your phone is locked. On the website, browser alerts ring while other tabs are open.
         </p>
       </div>
     </div>

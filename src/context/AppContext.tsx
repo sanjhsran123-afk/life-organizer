@@ -61,6 +61,7 @@ import {
   checkAndRequestPermissions,
 } from '../utils/localNotifications';
 import { isWebPushSupported, subscribeToPushNotifications } from '../utils/webPush';
+import { syncAndroidFcmIfEnabled, unregisterAndroidFcm } from '../utils/fcmPush';
 import { connectSocket, disconnectSocket } from '../utils/socket';
 
 export interface ToastMessage {
@@ -515,15 +516,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
   }, [currentUser]);
 
-  // Synchronize real-time Socket.io connection with active user session
+  // Synchronize real-time Socket.io and native Android FCM with active user session
   useEffect(() => {
     if (currentUser) {
       const token = getAuthToken();
       if (token) {
         connectSocket(token);
+        syncAndroidFcmIfEnabled(token);
       }
     } else {
       disconnectSocket();
+      unregisterAndroidFcm();
     }
   }, [currentUser]);
 
@@ -641,6 +644,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     apiLogout(userEmail, userName, userId);
     cancelAllReminders();
     disconnectSocket();
+    unregisterAndroidFcm();
     clearAuthToken();
     localStorage.removeItem(USER_KEY);
     setCurrentUser(null);

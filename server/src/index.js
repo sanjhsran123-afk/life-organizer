@@ -10,10 +10,12 @@ import adminRoutes from './routes/admin.js';
 import friendsRoutes from './routes/friends.js';
 import messagesRoutes from './routes/messages.js';
 import callsRoutes from './routes/calls.js';
+import fcmRoutes from './routes/fcm.js';
 import { authMiddleware } from './middleware/auth.js';
 import { initSocketServer } from './services/socketService.js';
 
 import { configureWebPush } from './services/pushService.js';
+import { configureFcm } from './services/fcmService.js';
 import { startReminderScheduler } from './services/reminderScheduler.js';
 
 // Support both root .env and ./server/.env for local development
@@ -22,8 +24,9 @@ if (!process.env.MONGODB_URI) {
   dotenv.config({ path: './server/.env' });
 }
 
-// Initialize Web Push VAPID configuration from environment variables
+// Initialize Web Push VAPID and Firebase Admin FCM configurations from environment variables
 configureWebPush();
+configureFcm();
 
 const app = express();
 // Render automatically provides PORT via environment variable
@@ -133,6 +136,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/friends', friendsRoutes);
 app.use('/api/messages', messagesRoutes);
 app.use('/api/calls', callsRoutes);
+app.use('/api/fcm', fcmRoutes);
 app.use('/api', apiRoutes);
 
 // Root informational route (sanitized to NEVER leak credentials or secrets)

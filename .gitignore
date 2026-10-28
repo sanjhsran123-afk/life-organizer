@@ -23,7 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 
-# Environment variables
+# Environment variables & secrets
 .env
 .env.*
 *.env
@@ -31,8 +31,13 @@ server/.env
 server/.env.*
 !.env.example
 !server/.env.example
+*.key
+*.pem
+google-services.json
+android/app/google-services.json
 
 # Build output
 dist/
 dist
+output/
 android/app/release/

@@ -3,6 +3,8 @@ import jwt from 'jsonwebtoken';
 import { JWT_SECRET } from '../middleware/auth.js';
 import { FriendshipModel, getPairKey } from '../models/Friendship.js';
 import { UserModel } from '../models/User.js';
+import { sendPushToUser } from './pushService.js';
+import { sendFcmIncomingCall, sendFcmMissedCall } from './fcmService.js';
 
 let ioInstance = null;
 
@@ -216,10 +218,31 @@ export function initSocketServer(httpServer, allowedOrigins = []) {
         const isOnline = Boolean(recipientRoom && recipientRoom.size > 0);
 
         if (!isOnline) {
+          // Send Web Push notification to browser tabs
+          sendPushToUser(recipientId, {
+            title: 'Missed Audio Call',
+            body: `${socket.userName || 'A friend'} tried calling you on DayLedger`,
+            tag: `call-${callId}`,
+            data: {
+              type: 'call_missed',
+              callId,
+              callerId: userId,
+              callerName: socket.userName,
+              url: '/?tab=friends',
+            },
+          }).catch(() => {});
+
+          // Send native FCM missed call notification to Android devices
+          sendFcmMissedCall(recipientId, {
+            callId,
+            callerId: userId,
+            callerName: socket.userName,
+          }).catch(() => {});
+
           return socket.emit('call:unavailable', {
             callId,
             reason: 'offline',
-            message: 'Friend is currently offline. Calls require both friends to have the app or site open.',
+            message: 'Friend is currently offline. A notification was sent to alert them.',
           });
         }
 
@@ -239,6 +262,28 @@ export function initSocketServer(httpServer, allowedOrigins = []) {
           callerName: socket.userName,
           callerAvatar: socket.userAvatar,
         });
+
+        // 7. Send background Web Push notification to browser subscriptions
+        sendPushToUser(recipientId, {
+          title: 'Incoming Audio Call',
+          body: `${socket.userName || 'A friend'} is calling you on DayLedger`,
+          tag: `call-${callId}`,
+          data: {
+            type: 'call',
+            callId,
+            callerId: userId,
+            callerName: socket.userName,
+            url: '/?tab=friends',
+          },
+        }).catch((err) => console.error('[Calls] Failed to send background push notification:', err.message));
+
+        // 8. Send high-priority native FCM notification to Android devices so device rings when locked/backgrounded
+        sendFcmIncomingCall(recipientId, {
+          callId,
+          callerId: userId,
+          callerName: socket.userName,
+          callerAvatar: socket.userAvatar,
+        }).catch((err) => console.error('[Calls] Failed to dispatch Android FCM incoming call:', err.message));
       } catch (err) {
         socket.emit('call:error', { callId, error: err.message });
       }

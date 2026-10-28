@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Card } from '../common/Card';
 import { Input } from '../common/Input';
@@ -20,9 +20,19 @@ import {
   Smartphone,
   Sun,
   Moon,
+  PhoneCall,
+  Wifi,
 } from 'lucide-react';
 import { usePwa } from '../../context/PwaContext';
 import { useTheme } from '../../context/ThemeContext';
+import { isAndroidNative } from '../../utils/fcmPush';
+import { useCall } from '../../context/CallContext';
+import {
+  runWebRtcDiagnostics,
+  isCallingSetupCompleted,
+  WebRtcDiagnosticReport,
+} from '../../utils/callingPermissions';
+
 export const SettingsView: React.FC = () => {
   const {
     profile,
@@ -55,6 +65,23 @@ export const SettingsView: React.FC = () => {
 
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
   const [isClearConfirmOpen, setIsClearConfirmOpen] = useState(false);
+
+  const { openCallingSetup } = useCall();
+  const [runningDiag, setRunningDiag] = useState(false);
+  const [diagReport, setDiagReport] = useState<WebRtcDiagnosticReport | null>(null);
+
+  const handleRunDiagnostics = async () => {
+    setRunningDiag(true);
+    try {
+      const report = await runWebRtcDiagnostics();
+      setDiagReport(report);
+      showToast('Network and ICE diagnostics completed', 'info');
+    } catch {
+      showToast('Failed to complete diagnostics', 'error');
+    } finally {
+      setRunningDiag(false);
+    }
+  };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -431,6 +458,119 @@ export const SettingsView: React.FC = () => {
               <p>• Web Manifest with standalone display mode and high-resolution maskable icons.</p>
               <p>• Apple mobile web app metadata for status bar and home screen icon.</p>
               <p>• Service worker app-shell caching (API requests remain strictly live & un-cached).</p>
+            </div>
+          </div>
+        </Card>
+
+        {/* Audio Calling & Wi-Fi Diagnostics Card */}
+        <Card>
+          <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800">
+            <div className="flex items-center gap-2">
+              <PhoneCall className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+              <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+                Audio Calling &amp; Wi-Fi Diagnostics
+              </h3>
+            </div>
+            <span
+              className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                isCallingSetupCompleted()
+                  ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300'
+                  : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400'
+              }`}
+            >
+              {isCallingSetupCompleted() ? 'Calling Configured' : 'Setup Pending'}
+            </span>
+          </div>
+
+          <div className="pt-4 space-y-3.5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-xl border border-zinc-200/80 dark:border-zinc-700/80 bg-zinc-50/70 dark:bg-zinc-800/50">
+              <div>
+                <h4 className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                  Calling Permissions &amp; Hardware
+                </h4>
+                <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">
+                  Microphone for voice audio and notifications for background incoming call rings.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  icon={<PhoneCall className="w-3.5 h-3.5" />}
+                  onClick={() => openCallingSetup()}
+                >
+                  Configure
+                </Button>
+                <Button
+                  size="sm"
+                  variant="primary"
+                  icon={runningDiag ? <RotateCcw className="w-3.5 h-3.5 animate-spin" /> : <Wifi className="w-3.5 h-3.5" />}
+                  onClick={handleRunDiagnostics}
+                  disabled={runningDiag}
+                >
+                  {runningDiag ? 'Testing...' : 'Test Wi-Fi / ICE'}
+                </Button>
+              </div>
+            </div>
+
+            {diagReport && (
+              <div className="p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 space-y-2.5 text-xs animate-fade-in">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
+                    <Wifi className="w-3.5 h-3.5 text-indigo-500" />
+                    <span>NAT &amp; Wi-Fi Traversal Assessment:</span>
+                  </span>
+                  <span
+                    className={`font-semibold px-2 py-0.5 rounded-full text-[10px] ${
+                      diagReport.wifiAssessment.status === 'optimal'
+                        ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300'
+                        : diagReport.wifiAssessment.status === 'standard'
+                        ? 'bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300'
+                        : 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300'
+                    }`}
+                  >
+                    {diagReport.wifiAssessment.status.toUpperCase()}
+                  </span>
+                </div>
+
+                <p className="text-[11px] text-zinc-600 dark:text-zinc-300 leading-relaxed">
+                  {diagReport.wifiAssessment.description}
+                </p>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11px] pt-1">
+                  <div className="p-2 rounded-lg bg-zinc-50 dark:bg-zinc-800">
+                    <span className="text-zinc-400">TURN Relay:</span>
+                    <p className="font-semibold text-zinc-800 dark:text-zinc-200">
+                      {diagReport.turnConfigured ? 'Active (Configured)' : 'STUN Only'}
+                    </p>
+                  </div>
+                  <div className="p-2 rounded-lg bg-zinc-50 dark:bg-zinc-800">
+                    <span className="text-zinc-400">ICE Candidates:</span>
+                    <p className="font-semibold text-zinc-800 dark:text-zinc-200">
+                      {diagReport.candidatesFound.length} gathered
+                    </p>
+                  </div>
+                  <div className="p-2 rounded-lg bg-zinc-50 dark:bg-zinc-800 col-span-2 sm:col-span-1">
+                    <span className="text-zinc-400">Secure HTTPS:</span>
+                    <p className="font-semibold text-zinc-800 dark:text-zinc-200">
+                      {diagReport.isSecureContext ? 'Verified' : 'Insecure'}
+                    </p>
+                  </div>
+                </div>
+
+                <p className="text-[10px] text-zinc-500 dark:text-zinc-400 italic">
+                  💡 {diagReport.wifiAssessment.recommendation}
+                </p>
+              </div>
+            )}
+
+            <div className="text-[11px] text-zinc-500 dark:text-zinc-400 leading-relaxed bg-zinc-50 dark:bg-zinc-800/50 p-3 rounded-xl border border-zinc-200/60 dark:border-zinc-700/60 space-y-1">
+              <p className="font-semibold text-zinc-700 dark:text-zinc-300">Audio Calling Architecture:</p>
+              <p>• WebRTC P2P direct encrypted audio stream with hardware echo cancellation.</p>
+              <p>• Android app rings background incoming calls through Firebase/push notifications.</p>
+              <p>• Website/PWA rings when DayLedger is active or browser tabs are open.</p>
+              <p>• No camera, contacts, location, or storage files accessed during audio calls.</p>
             </div>
           </div>
         </Card>

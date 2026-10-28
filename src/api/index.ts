@@ -688,6 +688,44 @@ export async function apiUnsubscribePush(endpoint: string): Promise<boolean> {
   }
 }
 
+// ==================== ANDROID / IOS FCM DEVICE TOKENS ====================
+
+export async function apiRegisterFcmToken(token: string, platform: 'android' | 'ios' = 'android', deviceModel?: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_BASE}/fcm/token`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ token, platform, deviceModel }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+export async function apiUnregisterFcmToken(token: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_BASE}/fcm/unregister`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ token }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+export async function apiGetFcmStatus(): Promise<{ fcmConfigured: boolean }> {
+  try {
+    const res = await fetch(`${API_BASE}/fcm/status`);
+    if (!res.ok) return { fcmConfigured: false };
+    return await res.json();
+  } catch {
+    return { fcmConfigured: false };
+  }
+}
+
 export async function apiCompleteTask(id: string): Promise<boolean> {
   try {
     const res = await fetch(`${API_BASE}/tasks/${id}/complete`, {

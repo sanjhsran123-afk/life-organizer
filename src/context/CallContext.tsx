@@ -2,6 +2,13 @@ import React, { createContext, useContext, useState, useEffect, useRef, useCallb
 import { ActiveCall, CallStatus, IceServerConfig } from '../types';
 import { connectSocket, getSocket } from '../utils/socket';
 import { apiGetIceServers, getAuthToken } from '../api';
+import {
+  ensureMicrophonePermission,
+  openDayLedgerAppSettings,
+  isCallingSetupCompleted,
+  checkCallingPermissions,
+} from '../utils/microphonePermission';
+import { CallingSetupModal } from '../components/friends/CallingSetupModal';
 
 interface CallContextType {
   activeCall: ActiveCall | null;
@@ -12,6 +19,9 @@ interface CallContextType {
   toggleMute: () => void;
   callError: string | null;
   clearCallError: () => void;
+  isPermissionPermanentlyDenied: boolean;
+  openAppSettings: () => Promise<void>;
+  openCallingSetup: (targetFriend?: { id: string; name: string; avatar: string }) => void;
 }
 
 const CallContext = createContext<CallContextType | undefined>(undefined);
@@ -123,6 +133,13 @@ const soundSynth = new SoundSynthesizer();
 export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [activeCall, setActiveCall] = useState<ActiveCall | null>(null);
   const [callError, setCallError] = useState<string | null>(null);
+  const [isPermissionPermanentlyDenied, setIsPermissionPermanentlyDenied] = useState<boolean>(false);
+
+  // Calling setup modal states
+  const [isSetupOpen, setIsSetupOpen] = useState<boolean>(false);
+  const [setupTarget, setSetupTarget] = useState<{ id: string; name: string; avatar: string } | null>(null);
+  const [setupForceDenied, setSetupForceDenied] = useState<boolean>(false);
+  const [setupDeniedMessage, setSetupDeniedMessage] = useState<string>('');
 
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
@@ -413,9 +430,10 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, [activeCall, cleanupMedia]);
 
-  // Initiate Outgoing Call
-  const startCall = async (peerId: string, peerName: string, peerAvatar: string) => {
+  // Core call initiator once permissions and setup are verified
+  const executeCall = async (peerId: string, peerName: string, peerAvatar: string) => {
     setCallError(null);
+    setIsPermissionPermanentlyDenied(false);
     const token = getAuthToken();
     if (!token) {
       setCallError('Authentication required to start a call.');
@@ -423,10 +441,15 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     try {
-      // Test microphone access first before ringing
+      // Test and acquire local microphone stream
       await getMicrophoneStream();
     } catch (err: any) {
       setCallError(err.message || 'Microphone access required');
+      setIsSetupOpen(true);
+      setSetupForceDenied(true);
+      setSetupDeniedMessage(
+        err.message || 'Microphone access was denied. Please allow microphone permission in settings.'
+      );
       return;
     }
 
@@ -448,10 +471,48 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
     socket.emit('call:initiate', { callId, recipientId: peerId });
   };
 
-  // Accept Incoming Call
+  // Initiate Outgoing Call - Gates on calling setup
+  const startCall = async (peerId: string, peerName: string, peerAvatar: string) => {
+    setCallError(null);
+    setIsPermissionPermanentlyDenied(false);
+
+    const isSetup = isCallingSetupCompleted();
+    const permStatus = await checkCallingPermissions();
+
+    // If calling has not been set up or microphone is not granted, present the one-time setup screen
+    if (!isSetup || !permStatus.micGranted) {
+      setSetupTarget({ id: peerId, name: peerName, avatar: peerAvatar });
+      setSetupForceDenied(permStatus.micPermanentlyDenied);
+      setSetupDeniedMessage(
+        permStatus.micPermanentlyDenied
+          ? 'Microphone access is needed for audio calls, but permission was permanently denied. Please tap "Open Android Settings" below or unblock in browser settings.'
+          : ''
+      );
+      setIsSetupOpen(true);
+      return;
+    }
+
+    // Permission setup is complete: start ringing friend immediately without another microphone prompt
+    await executeCall(peerId, peerName, peerAvatar);
+  };
+
+  // Accept Incoming Call - Recipient must choose to answer
   const acceptCall = async () => {
     if (!activeCall) return;
     soundSynth.stop();
+
+    const permStatus = await checkCallingPermissions();
+    if (!permStatus.micGranted) {
+      setSetupTarget({ id: activeCall.peerId, name: activeCall.peerName, avatar: activeCall.peerAvatar });
+      setSetupForceDenied(permStatus.micPermanentlyDenied);
+      setSetupDeniedMessage(
+        permStatus.micPermanentlyDenied
+          ? 'Microphone access is needed to accept calls, but permission was permanently denied. Please enable Microphone in settings.'
+          : 'Microphone access is needed to accept audio calls. Please allow permission.'
+      );
+      setIsSetupOpen(true);
+      return;
+    }
 
     try {
       const pc = await initPeerConnection(activeCall.peerId, activeCall.callId);
@@ -512,7 +573,30 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const clearCallError = () => setCallError(null);
+  const clearCallError = () => {
+    setCallError(null);
+    setIsPermissionPermanentlyDenied(false);
+  };
+
+  const openCallingSetup = (targetFriend?: { id: string; name: string; avatar: string }) => {
+    if (targetFriend) setSetupTarget(targetFriend);
+    setSetupForceDenied(false);
+    setSetupDeniedMessage('');
+    setIsSetupOpen(true);
+  };
+
+  const handleSetupSuccess = async () => {
+    setIsSetupOpen(false);
+    if (setupTarget) {
+      const target = setupTarget;
+      setSetupTarget(null);
+      if (activeCall && activeCall.status === 'incoming_ringing') {
+        await acceptCall();
+      } else {
+        await executeCall(target.id, target.name, target.avatar);
+      }
+    }
+  };
 
   return (
     <CallContext.Provider
@@ -525,9 +609,24 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
         toggleMute,
         callError,
         clearCallError,
+        isPermissionPermanentlyDenied,
+        openAppSettings: openDayLedgerAppSettings,
+        openCallingSetup,
       }}
     >
       {children}
+
+      <CallingSetupModal
+        isOpen={isSetupOpen}
+        onClose={() => {
+          setIsSetupOpen(false);
+          setSetupTarget(null);
+        }}
+        onSetupSuccess={handleSetupSuccess}
+        targetFriendName={setupTarget?.name}
+        forceDeniedMode={setupForceDenied}
+        deniedErrorMessage={setupDeniedMessage}
+      />
     </CallContext.Provider>
   );
 };

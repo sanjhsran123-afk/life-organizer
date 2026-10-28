@@ -48,12 +48,20 @@ import { formatDate } from '../../utils/formatters';
 import { FriendChatView } from './FriendChatView';
 import { useCall } from '../../context/CallContext';
 import { getSocket } from '../../utils/socket';
+import { getCallingSetupState } from '../../utils/callingPermissions';
 
 type TabMode = 'friends' | 'requests' | 'search' | 'blocked';
 
 export const FriendsView: React.FC = () => {
   const { showToast, refreshFriendsCount, currentUser } = useApp();
-  const { startCall } = useCall();
+  const { startCall, openCallingSetup } = useCall();
+
+  // One-time calling setup check before user makes or receives their first call
+  useEffect(() => {
+    if (getCallingSetupState() === 'none') {
+      openCallingSetup();
+    }
+  }, [openCallingSetup]);
 
   const [activeTab, setActiveTab] = useState<TabMode>('friends');
   const [loading, setLoading] = useState(false);
