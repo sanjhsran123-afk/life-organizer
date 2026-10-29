@@ -14,6 +14,8 @@ export {
   checkCallingPermissions,
   requestCallingPermissions,
   openDayLedgerAppSettings,
+  checkFullScreenIntentPermission,
+  openFullScreenIntentSettings,
   runWebRtcDiagnostics,
   type WebRtcDiagnosticReport,
 } from './callingPermissions';

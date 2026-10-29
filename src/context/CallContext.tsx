@@ -9,6 +9,7 @@ import {
   checkCallingPermissions,
 } from '../utils/microphonePermission';
 import { CallingSetupModal } from '../components/friends/CallingSetupModal';
+import { NativeCall } from '../utils/nativeCall';
 
 interface CallContextType {
   activeCall: ActiveCall | null;
@@ -500,6 +501,7 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const acceptCall = async () => {
     if (!activeCall) return;
     soundSynth.stop();
+    NativeCall.dismissActiveCall({ callId: activeCall.callId }).catch(() => {});
 
     const permStatus = await checkCallingPermissions();
     if (!permStatus.micGranted) {
@@ -532,10 +534,104 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Join Call Answered directly from native Android UI (notification or full-screen lock screen)
+  const joinAnsweredCall = useCallback(
+    async (callId: string, peerId: string, peerName: string, peerAvatar?: string) => {
+      soundSynth.stop();
+      NativeCall.dismissActiveCall({ callId }).catch(() => {});
+
+      setActiveCall({
+        callId,
+        peerId,
+        peerName,
+        peerAvatar: peerAvatar || '',
+        isIncoming: true,
+        isMuted: false,
+        status: 'incoming_ringing',
+        duration: 0,
+      });
+
+      const permStatus = await checkCallingPermissions();
+      if (!permStatus.micGranted) {
+        setSetupTarget({ id: peerId, name: peerName, avatar: peerAvatar || '' });
+        setSetupForceDenied(permStatus.micPermanentlyDenied);
+        setSetupDeniedMessage(
+          permStatus.micPermanentlyDenied
+            ? 'Microphone access is needed to accept calls, but permission was permanently denied. Please enable Microphone in settings.'
+            : 'Microphone access is needed to accept audio calls. Please allow permission.'
+        );
+        setIsSetupOpen(true);
+        return;
+      }
+
+      try {
+        const pc = await initPeerConnection(peerId, callId);
+        const stream = await getMicrophoneStream();
+        stream.getAudioTracks().forEach((track) => pc.addTrack(track, stream));
+
+        const socket = getSocket();
+        socket?.emit('call:accept', {
+          callId,
+          callerId: peerId,
+        });
+
+        setActiveCall((prev) => (prev ? { ...prev, status: 'connecting' } : null));
+      } catch (err: any) {
+        setCallError(err.message || 'Failed to accept call');
+        const socket = getSocket();
+        socket?.emit('call:decline', {
+          callId,
+          callerId: peerId,
+          reason: 'declined',
+        });
+        cleanupMedia();
+        setActiveCall(null);
+      }
+    },
+    [cleanupMedia]
+  );
+
+  // Listen for native Android call actions (Answer button tapped in notification or lock screen)
+  useEffect(() => {
+    NativeCall.getPendingCallAction()
+      .then((pending) => {
+        if (pending?.hasPendingAction && pending.action === 'answer' && pending.callId && pending.callerId) {
+          joinAnsweredCall(
+            pending.callId,
+            pending.callerId,
+            pending.callerName || 'A friend',
+            pending.callerAvatar
+          );
+        }
+      })
+      .catch(() => {});
+
+    let handle: any = null;
+    NativeCall.addListener('callAnswered', (info) => {
+      if (info?.action === 'answer' && info.callId && info.callerId) {
+        joinAnsweredCall(
+          info.callId,
+          info.callerId,
+          info.callerName || 'A friend',
+          info.callerAvatar
+        );
+      }
+    })
+      .then((h) => {
+        handle = h;
+      })
+      .catch(() => {});
+
+    return () => {
+      if (handle?.remove) handle.remove();
+    };
+  }, [joinAnsweredCall]);
+
   // Decline Incoming Call
   const declineCall = () => {
     if (!activeCall) return;
     soundSynth.stop();
+    NativeCall.dismissActiveCall({ callId: activeCall.callId }).catch(() => {});
 
     const socket = getSocket();
     socket?.emit('call:decline', {
@@ -552,6 +648,7 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const endCall = () => {
     if (!activeCall) return;
     soundSynth.playEndTone();
+    NativeCall.dismissActiveCall({ callId: activeCall.callId }).catch(() => {});
 
     const socket = getSocket();
     socket?.emit('call:end', {

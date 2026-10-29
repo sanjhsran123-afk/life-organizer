@@ -130,9 +130,12 @@ export function isFcmConfigured() {
 }
 
 /**
- * Send high-priority incoming call FCM message to all active Android device tokens of recipient
+ * Send high-priority incoming call FCM message to all active Android device tokens of recipient.
+ * Uses a pure data-only payload so background Android devices deliver it directly to
+ * FirebaseMessagingService.onMessageReceived() to launch the native call-style UI
+ * without displaying duplicate ordinary notifications.
  */
-export async function sendFcmIncomingCall(userId, { callId, callerId, callerName, callerAvatar = '' }) {
+export async function sendFcmIncomingCall(userId, { callId, callerId, callerName, callerAvatar = '', declineToken = '' }) {
   if (!isFirebaseInitialized || !userId) {
     return { success: false, sent: 0, reason: 'unconfigured_or_no_user' };
   }
@@ -159,24 +162,12 @@ export async function sendFcmIncomingCall(userId, { callId, callerId, callerName
               callerId: String(callerId),
               callerName: String(callerName || 'A friend'),
               callerAvatar: String(callerAvatar || ''),
+              declineToken: String(declineToken || ''),
               timestamp: String(Date.now()),
-            },
-            notification: {
-              title: 'Incoming Audio Call',
-              body: `${callerName || 'A friend'} is calling you on DayLedger`,
             },
             android: {
               priority: 'high',
               ttl: 30 * 1000, // 30 seconds ring timeout
-              notification: {
-                channelId: 'incoming_calls',
-                title: 'Incoming Audio Call',
-                body: `${callerName || 'A friend'} is calling you on DayLedger`,
-                sound: 'default',
-                tag: `call-${callId}`,
-                priority: 'max',
-                visibility: 'public',
-              },
             },
           });
           sentCount++;
@@ -203,6 +194,46 @@ export async function sendFcmIncomingCall(userId, { callId, callerId, callerName
     return { success: true, sent: sentCount };
   } catch (err) {
     console.error('[FCM] sendFcmIncomingCall failed:', err.message);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Send dismiss / cancel signal to Android devices for a ringing call
+ */
+export async function sendFcmCallDismiss(userId, { callId }) {
+  if (!isFirebaseInitialized || !userId || !callId) return { success: false };
+
+  try {
+    const devices = await DeviceTokenModel.find({ userId });
+    if (!devices.length) return { success: true, sent: 0 };
+
+    const messaging = getMessaging(fcmApp || undefined);
+    const tokens = devices.map((d) => d.token);
+
+    await Promise.allSettled(
+      tokens.map(async (token) => {
+        try {
+          await messaging.send({
+            token,
+            data: {
+              type: 'call_dismiss',
+              callId: String(callId),
+              timestamp: String(Date.now()),
+            },
+            android: {
+              priority: 'high',
+              ttl: 10 * 1000,
+            },
+          });
+        } catch (e) {
+          // Handled
+        }
+      })
+    );
+
+    return { success: true };
+  } catch (err) {
     return { success: false, error: err.message };
   }
 }

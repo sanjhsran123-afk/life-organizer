@@ -1,9 +1,35 @@
 import express from 'express';
 import crypto from 'crypto';
-import { requireAuth } from '../middleware/auth.js';
+import { requireAuth, authMiddleware } from '../middleware/auth.js';
 import { isR2Configured } from '../services/r2Service.js';
+import { declineActiveCall } from '../services/socketService.js';
 
 const router = express.Router();
+
+/**
+ * POST /api/calls/:callId/decline
+ * Allows recipient to decline an incoming call (e.g. from native Android notification or background receiver).
+ * Authenticates either via valid declineToken (from FCM data payload) or via Bearer JWT.
+ */
+router.post('/:callId/decline', authMiddleware, (req, res) => {
+  const { callId } = req.params;
+  const { declineToken, reason } = req.body || {};
+
+  const result = declineActiveCall(callId, {
+    userId: req.userId || null,
+    declineToken: declineToken || null,
+    reason: reason || 'declined',
+  });
+
+  if (!result.success) {
+    return res.status(result.reason === 'unauthorized' || result.reason === 'invalid_decline_token' ? 403 : 404).json({
+      error: result.reason,
+      message: 'Unable to decline call or call already ended.',
+    });
+  }
+
+  res.json({ success: true, message: 'Call declined successfully.' });
+});
 
 router.use(requireAuth);
 

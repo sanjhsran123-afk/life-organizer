@@ -1,6 +1,7 @@
 package com.dayledger.app;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.webkit.PermissionRequest;
@@ -13,7 +14,10 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(MicrophonePermissionPlugin.class);
+        registerPlugin(NativeCallPlugin.class);
         super.onCreate(savedInstanceState);
+
+        handleCallIntent(getIntent());
 
         // Ensure Capacitor's WebView permission flow allows the call's microphone request only after Android grants it.
         bridge.getWebView().setWebChromeClient(new BridgeWebChromeClient(bridge) {
@@ -40,5 +44,31 @@ public class MainActivity extends BridgeActivity {
                 super.onPermissionRequest(request);
             }
         });
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleCallIntent(intent);
+    }
+
+    private void handleCallIntent(Intent intent) {
+        if (intent == null) return;
+        String action = intent.getAction();
+        String callAction = intent.getStringExtra("callAction");
+
+        if ("com.dayledger.app.ACTION_ANSWER_CALL".equals(action) || "answer".equals(callAction)) {
+            String callId = intent.getStringExtra("callId");
+            String callerId = intent.getStringExtra("callerId");
+            String callerName = intent.getStringExtra("callerName");
+            String callerAvatar = intent.getStringExtra("callerAvatar");
+
+            // Dismiss native ringtone and notification
+            CallNotificationManager.getInstance(this).dismissCall(this, callId);
+
+            // Forward to NativeCallPlugin so JavaScript can join call
+            NativeCallPlugin.setPendingCallAction("answer", callId, callerId, callerName, callerAvatar);
+        }
     }
 }

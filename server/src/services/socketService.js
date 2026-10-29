@@ -1,10 +1,11 @@
 import { Server } from 'socket.io';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import { JWT_SECRET } from '../middleware/auth.js';
 import { FriendshipModel, getPairKey } from '../models/Friendship.js';
 import { UserModel } from '../models/User.js';
 import { sendPushToUser } from './pushService.js';
-import { sendFcmIncomingCall, sendFcmMissedCall } from './fcmService.js';
+import { sendFcmIncomingCall, sendFcmMissedCall, sendFcmCallDismiss } from './fcmService.js';
 
 let ioInstance = null;
 
@@ -246,6 +247,8 @@ export function initSocketServer(httpServer, allowedOrigins = []) {
           });
         }
 
+        const declineToken = crypto.randomBytes(16).toString('hex');
+
         // 5. Register active call on server (server active-call record is source of truth)
         activeCalls.set(callId, {
           callId,
@@ -253,6 +256,7 @@ export function initSocketServer(httpServer, allowedOrigins = []) {
           recipientId,
           status: 'ringing',
           startedAt: Date.now(),
+          declineToken,
         });
 
         // 6. Forward incoming call notification to recipient with authenticated caller identity
@@ -283,6 +287,7 @@ export function initSocketServer(httpServer, allowedOrigins = []) {
           callerId: userId,
           callerName: socket.userName,
           callerAvatar: socket.userAvatar,
+          declineToken,
         }).catch((err) => console.error('[Calls] Failed to dispatch Android FCM incoming call:', err.message));
       } catch (err) {
         socket.emit('call:error', { callId, error: err.message });
@@ -419,6 +424,11 @@ export function initSocketServer(httpServer, allowedOrigins = []) {
           callId,
           reason: reason || 'declined',
         });
+
+        // 7. If caller cancelled while ringing, dismiss FCM alert on recipient device
+        if (isCaller) {
+          sendFcmCallDismiss(call.recipientId, { callId }).catch(() => {});
+        }
       } catch (err) {
         console.error('Call decline error:', err.message);
       }
@@ -447,10 +457,15 @@ export function initSocketServer(httpServer, allowedOrigins = []) {
         // 3. Target is strictly the other participant
         const targetUserId = isCaller ? call.recipientId : call.callerId;
 
-        // 4. Clean up server record
+        // 4. Dismiss FCM ringing if caller cancelled while ringing
+        if (isCaller && call.status === 'ringing') {
+          sendFcmCallDismiss(call.recipientId, { callId }).catch(() => {});
+        }
+
+        // 5. Clean up server record
         activeCalls.delete(callId);
 
-        // 5. Notify the other participant that call ended
+        // 6. Notify the other participant that call ended
         ioInstance.to(`user:${targetUserId}`).emit('call:ended', { callId });
       } catch (err) {
         console.error('Call end error:', err.message);
@@ -462,6 +477,9 @@ export function initSocketServer(httpServer, allowedOrigins = []) {
       // Clean up any call where this user was a participant
       for (const [callId, call] of activeCalls.entries()) {
         if (call.callerId === userId) {
+          if (call.status === 'ringing') {
+            sendFcmCallDismiss(call.recipientId, { callId }).catch(() => {});
+          }
           ioInstance.to(`user:${call.recipientId}`).emit('call:ended', { callId, reason: 'disconnected' });
           activeCalls.delete(callId);
         } else if (call.recipientId === userId) {
@@ -485,12 +503,50 @@ export function initSocketServer(httpServer, allowedOrigins = []) {
           });
           ioInstance.to(`user:${call.recipientId}`).emit('call:ended', { callId, reason: 'timeout' });
         }
+        sendFcmCallDismiss(call.recipientId, { callId }).catch(() => {});
         activeCalls.delete(callId);
       }
     }
   }, 15000);
 
   return ioInstance;
+}
+
+/**
+ * Decline an active call programmatically via HTTP endpoint.
+ * Validates either the authenticated userId or an ephemeral declineToken.
+ */
+export function declineActiveCall(callId, { userId = null, declineToken = null, reason = 'declined' } = {}) {
+  if (!callId) return { success: false, reason: 'missing_call_id' };
+  const call = activeCalls.get(callId);
+  if (!call) return { success: false, reason: 'call_not_found' };
+
+  if (declineToken) {
+    if (call.declineToken !== declineToken) {
+      return { success: false, reason: 'invalid_decline_token' };
+    }
+  } else if (userId) {
+    if (call.recipientId !== userId && call.callerId !== userId) {
+      return { success: false, reason: 'unauthorized' };
+    }
+  } else {
+    return { success: false, reason: 'auth_required' };
+  }
+
+  activeCalls.delete(callId);
+
+  // Notify caller via socket
+  if (ioInstance) {
+    ioInstance.to(`user:${call.callerId}`).emit('call:declined', {
+      callId,
+      reason: reason || 'declined',
+    });
+  }
+
+  // Dismiss native ringing on recipient devices
+  sendFcmCallDismiss(call.recipientId, { callId }).catch(() => {});
+
+  return { success: true };
 }
 
 /**

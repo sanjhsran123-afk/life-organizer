@@ -43,7 +43,7 @@ export async function initLocalNotifications(
       id: REMINDER_CHANNEL_ID,
       name: 'Task Deadline Reminders',
       description: 'Alerts and ringtones for upcoming and reached task deadlines',
-      sound: 'final.mp3',
+      sound: 'task_reminder.mp3',
       importance: 5,
       visibility: 1,
       vibration: true,
@@ -185,7 +185,7 @@ export async function scheduleTaskReminder(task: Task): Promise<void> {
       schedule: { at: new Date(fiveMinBefore), allowWhileIdle: true },
       channelId: REMINDER_CHANNEL_ID,
       extra: { taskId: task.id, type: 'pre' },
-      sound: 'final.mp3',
+      sound: 'task_reminder.mp3',
     });
   }
 
@@ -198,7 +198,7 @@ export async function scheduleTaskReminder(task: Task): Promise<void> {
     channelId: REMINDER_CHANNEL_ID,
     actionTypeId: ACTION_TYPE_DEADLINE,
     extra: { taskId: task.id, type: 'due' },
-    sound: 'final.mp3',
+    sound: 'task_reminder.mp3',
   });
 
   try {

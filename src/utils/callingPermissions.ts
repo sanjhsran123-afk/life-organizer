@@ -3,6 +3,7 @@ import { PushNotifications } from '@capacitor/push-notifications';
 import { apiGetIceServers } from '../api';
 import { IceServerConfig } from '../types';
 import { registerAndroidFcmToken } from './fcmPush';
+import { NativeCall, FullScreenIntentStatus } from './nativeCall';
 
 export interface PermissionResult {
   granted: boolean;
@@ -128,6 +129,8 @@ export interface CallingPermissionsStatus {
   micGranted: boolean;
   micPermanentlyDenied: boolean;
   notificationsGranted: boolean;
+  fullScreenIntentGranted?: boolean;
+  fullScreenIntentSupported?: boolean;
   isAndroid: boolean;
   isSecureContext: boolean;
   errorMessage?: string;
@@ -153,10 +156,22 @@ export async function checkCallingPermissions(): Promise<CallingPermissionsStatu
         // Fallback for notification check
       }
 
+      let fullScreenGranted = true;
+      let fullScreenSupported = false;
+      try {
+        const fsStatus = await NativeCall.checkFullScreenIntentPermission();
+        fullScreenGranted = fsStatus.granted;
+        fullScreenSupported = fsStatus.isSupported;
+      } catch {
+        // Fallback if plugin unavailable
+      }
+
       return {
         micGranted: micRes.granted,
         micPermanentlyDenied: micRes.isPermanentlyDenied,
         notificationsGranted: notifGranted,
+        fullScreenIntentGranted: fullScreenGranted,
+        fullScreenIntentSupported: fullScreenSupported,
         isAndroid: true,
         isSecureContext: true,
       };
@@ -165,6 +180,8 @@ export async function checkCallingPermissions(): Promise<CallingPermissionsStatu
         micGranted: false,
         micPermanentlyDenied: false,
         notificationsGranted: false,
+        fullScreenIntentGranted: true,
+        fullScreenIntentSupported: false,
         isAndroid: true,
         isSecureContext: true,
       };
@@ -496,4 +513,18 @@ export async function runWebRtcDiagnostics(): Promise<WebRtcDiagnosticReport> {
       recommendation,
     },
   };
+}
+
+/**
+ * Checks full-screen intent permission on Android 14+ (API 34+)
+ */
+export async function checkFullScreenIntentPermission(): Promise<FullScreenIntentStatus> {
+  return NativeCall.checkFullScreenIntentPermission();
+}
+
+/**
+ * Opens Android settings for full-screen intent permission on Android 14+
+ */
+export async function openFullScreenIntentSettings(): Promise<void> {
+  return NativeCall.openFullScreenIntentSettings();
 }

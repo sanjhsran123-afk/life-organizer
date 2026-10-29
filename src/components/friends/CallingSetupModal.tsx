@@ -20,6 +20,7 @@ import {
   openDayLedgerAppSettings,
   setCallingSetupState,
   checkCallingPermissions,
+  openFullScreenIntentSettings,
   runWebRtcDiagnostics,
   WebRtcDiagnosticReport,
 } from '../../utils/callingPermissions';
@@ -48,9 +49,27 @@ export const CallingSetupModal: React.FC<CallingSetupModalProps> = ({
   const [diagLoading, setDiagLoading] = useState(false);
   const [diagReport, setDiagReport] = useState<WebRtcDiagnosticReport | null>(null);
 
+  const [fullScreenStatus, setFullScreenStatus] = useState<{ isSupported: boolean; granted: boolean }>({
+    isSupported: false,
+    granted: true,
+  });
+
   const isNative = Capacitor.isNativePlatform();
   const isAndroid = isNative && Capacitor.getPlatform() === 'android';
   const isHttps = typeof window !== 'undefined' ? (window.isSecureContext ?? true) : true;
+
+  useEffect(() => {
+    if (isAndroid) {
+      checkCallingPermissions().then((status) => {
+        if (status.fullScreenIntentSupported !== undefined) {
+          setFullScreenStatus({
+            isSupported: Boolean(status.fullScreenIntentSupported),
+            granted: Boolean(status.fullScreenIntentGranted),
+          });
+        }
+      }).catch(() => {});
+    }
+  }, [isAndroid]);
 
   useEffect(() => {
     if (forceDeniedMode) {
@@ -194,6 +213,36 @@ export const CallingSetupModal: React.FC<CallingSetupModalProps> = ({
                     </p>
                   </div>
                 </div>
+
+                {/* 3. Android 14+ Full-Screen Intent Access (when not yet granted) */}
+                {isAndroid && fullScreenStatus.isSupported && !fullScreenStatus.granted && (
+                  <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 flex items-start gap-3">
+                    <div className="p-2 rounded-xl bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300 mt-0.5 shrink-0">
+                      <PhoneCall className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <h4 className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                          Full-Screen Lock Screen Calls
+                        </h4>
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-200/70 dark:bg-amber-900 text-amber-800 dark:text-amber-200">
+                          Android 14+ Setup
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-zinc-600 dark:text-zinc-300 mt-1 leading-relaxed">
+                        To display the incoming-call screen over your lock screen on Android 14+, allow full-screen intents for DayLedger.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={openFullScreenIntentSettings}
+                        className="mt-2.5 py-1.5 px-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-[11px] font-semibold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                      >
+                        <Settings className="w-3.5 h-3.5" />
+                        <span>Enable Lock Screen Calls</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Privacy and Security Guarantee */}
