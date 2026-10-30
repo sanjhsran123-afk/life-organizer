@@ -13,6 +13,7 @@ import {
   ChevronRight,
   Info,
   X,
+  Share,
 } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
 import {
@@ -57,6 +58,11 @@ export const CallingSetupModal: React.FC<CallingSetupModalProps> = ({
   const isNative = Capacitor.isNativePlatform();
   const isAndroid = isNative && Capacitor.getPlatform() === 'android';
   const isHttps = typeof window !== 'undefined' ? (window.isSecureContext ?? true) : true;
+  const isIos = typeof navigator !== 'undefined' && /iPhone|iPad|iPod/.test(navigator.userAgent);
+  const isStandalone = typeof window !== 'undefined' && (
+    ('standalone' in window.navigator && Boolean((window.navigator as any).standalone)) ||
+    window.matchMedia('(display-mode: standalone)').matches
+  );
 
   useEffect(() => {
     if (isAndroid) {
@@ -203,16 +209,40 @@ export const CallingSetupModal: React.FC<CallingSetupModalProps> = ({
                         Notification Access
                       </h4>
                       <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300">
-                        Background Ringing
+                        {isAndroid ? 'Background Ringing' : 'Incoming Call Alerts'}
                       </span>
                     </div>
                     <p className="text-[11px] text-zinc-600 dark:text-zinc-300 mt-1 leading-relaxed">
                       {isAndroid
                         ? 'Allows DayLedger to ring your phone and alert you of incoming calls even when your phone is locked or the app is closed in the background.'
-                        : 'Alerts you of incoming calls when browsing other browser tabs. (Note: Browser calls cannot wake a native locked phone screen; for full lock-screen ringing, use the DayLedger Android app).'}
+                        : isIos
+                        ? 'Sends Lock Screen notifications for incoming calls when installed as a Home Screen PWA. Tapping the notification opens DayLedger to answer the call (note: iOS PWAs do not support native CallKit).'
+                        : 'Alerts you of incoming calls when browsing other browser tabs or when DayLedger is running in the background.'}
                     </p>
                   </div>
                 </div>
+
+                {/* iPhone Home Screen PWA Tip */}
+                {isIos && !isStandalone && !isAndroid && (
+                  <div className="p-3.5 rounded-2xl bg-indigo-50/90 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/80 flex items-start gap-3">
+                    <div className="p-2 rounded-xl bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400 mt-0.5 shrink-0">
+                      <Share className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                          Add to iPhone Home Screen
+                        </h4>
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300">
+                          Recommended
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-zinc-600 dark:text-zinc-300 mt-1 leading-relaxed">
+                        To receive incoming call alerts when your iPhone screen is locked, tap <strong>Share</strong> (⎋ / <span className="inline-block font-bold">↥</span>) in Safari and tap <strong>Add to Home Screen</strong>.
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 {/* 3. Android 14+ Full-Screen Intent Access (when not yet granted) */}
                 {isAndroid && fullScreenStatus.isSupported && !fullScreenStatus.granted && (
@@ -286,6 +316,14 @@ export const CallingSetupModal: React.FC<CallingSetupModalProps> = ({
                     <li>Tap <strong>Microphone</strong> and select <strong>&quot;Allow only while using the app&quot;</strong>.</li>
                     <li>Tap <strong>Notifications</strong> and make sure <strong>&quot;Allow notifications&quot;</strong> is switched on.</li>
                     <li>Return to DayLedger and tap Call again!</li>
+                  </ol>
+                ) : isIos ? (
+                  <ol className="text-xs text-zinc-600 dark:text-zinc-300 space-y-2 list-decimal list-inside leading-relaxed">
+                    <li>Open <strong>Settings</strong> on your iPhone.</li>
+                    <li>Scroll down and tap <strong>Safari</strong> (or <strong>DayLedger</strong> if installed to Home Screen).</li>
+                    <li>Tap <strong>Microphone</strong> and set it to <strong>Allow</strong>.</li>
+                    <li>Tap <strong>Notifications</strong> and ensure <strong>Allow Notifications</strong> is enabled.</li>
+                    <li>Return to DayLedger and tap &quot;Try Again&quot; below.</li>
                   </ol>
                 ) : (
                   <ol className="text-xs text-zinc-600 dark:text-zinc-300 space-y-2 list-decimal list-inside leading-relaxed">

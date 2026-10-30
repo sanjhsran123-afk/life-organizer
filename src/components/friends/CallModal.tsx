@@ -1,6 +1,7 @@
 import React from 'react';
 import { useCall } from '../../context/CallContext';
 import { Avatar } from '../common/Avatar';
+import { ActiveCallBanner } from './ActiveCallBanner';
 import {
   Phone,
   PhoneCall,
@@ -9,10 +10,10 @@ import {
   MicOff,
   Radio,
   Wifi,
-  Sparkles,
   ShieldCheck,
   X,
   Settings,
+  ChevronDown,
 } from 'lucide-react';
 
 export const CallModal: React.FC = () => {
@@ -27,7 +28,13 @@ export const CallModal: React.FC = () => {
     isPermissionPermanentlyDenied,
     openAppSettings,
     openCallingSetup,
+    isCallMinimized,
+    minimizeCall,
   } = useCall();
+
+  if (activeCall && isCallMinimized) {
+    return <ActiveCallBanner />;
+  }
 
   if (callError && !activeCall) {
     return (
@@ -96,6 +103,19 @@ export const CallModal: React.FC = () => {
         {/* Glow ambient background */}
         <div className="absolute -top-24 -left-24 w-48 h-48 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none" />
+
+        {/* Minimize Button (Available during outgoing call, connecting, or connected) */}
+        {!isIncoming && (
+          <button
+            type="button"
+            onClick={minimizeCall}
+            className="absolute top-4 right-4 p-2 rounded-full text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors z-20 cursor-pointer"
+            title="Minimize call to navigate app"
+            aria-label="Minimize call"
+          >
+            <ChevronDown className="w-5 h-5" />
+          </button>
+        )}
 
         {/* Security / Quality Header */}
         <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800/80 text-[11px] font-semibold text-zinc-600 dark:text-zinc-300 mb-6">
@@ -210,7 +230,7 @@ export const CallModal: React.FC = () => {
 
         {/* Background Calling Notice */}
         <p className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-4 leading-tight">
-          Internet audio calls connect once answered. On the Android app, push notifications ring incoming calls even while your phone is locked. On the website, browser alerts ring while other tabs are open.
+          Internet audio calls connect once answered. On the Android APK, calls ring even while locked. On iPhone PWA and desktop web, Lock Screen / browser notifications alert you of incoming calls.
         </p>
       </div>
     </div>

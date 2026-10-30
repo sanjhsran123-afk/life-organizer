@@ -4,6 +4,7 @@ import { apiGetIceServers } from '../api';
 import { IceServerConfig } from '../types';
 import { registerAndroidFcmToken } from './fcmPush';
 import { NativeCall, FullScreenIntentStatus } from './nativeCall';
+import { isWebPushSupported, subscribeToPushNotifications } from './webPush';
 
 export interface PermissionResult {
   granted: boolean;
@@ -304,6 +305,11 @@ export async function requestCallingPermissions(): Promise<{
     try {
       const res = await Notification.requestPermission();
       notifGranted = res === 'granted';
+      if (notifGranted && isWebPushSupported()) {
+        subscribeToPushNotifications().catch((err) => {
+          console.warn('[CallingPermissions] Error subscribing to Web Push:', err);
+        });
+      }
     } catch {
       notifGranted = false;
     }

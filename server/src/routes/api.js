@@ -8,7 +8,7 @@ import { ActivityModel } from '../models/Activity.js';
 import { UserProfileModel } from '../models/UserProfile.js';
 import { UserModel } from '../models/User.js';
 import { PushSubscriptionModel } from '../models/PushSubscription.js';
-import { getVapidPublicKey } from '../services/pushService.js';
+import { getVapidPublicKey, isPushConfigured } from '../services/pushService.js';
 import { requireAuth } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -36,6 +36,25 @@ router.get('/health', (req, res) => {
     status: isConnected ? 'connected' : 'disconnected',
     database: isConnected ? mongoose.connection.name : null,
     host: isConnected ? mongoose.connection.host : null,
+  });
+});
+
+// GET /api/push/status - Public endpoint to check Web Push VAPID configuration
+router.get('/push/status', (req, res) => {
+  const configured = isPushConfigured();
+  const publicKey = getVapidPublicKey();
+  res.json({
+    pushConfigured: configured,
+    hasPublicKey: Boolean(publicKey),
+  });
+});
+
+// GET /api/push/public-key - Retrieve VAPID public key for browser PushManager subscription (Public endpoint)
+router.get('/push/public-key', (req, res) => {
+  const publicKey = getVapidPublicKey();
+  res.json({
+    publicKey,
+    configured: Boolean(publicKey),
   });
 });
 
@@ -427,12 +446,6 @@ router.post('/seed', checkDB, async (req, res) => {
 });
 
 // ==================== WEB PUSH NOTIFICATIONS ====================
-
-// GET /api/push/public-key - Retrieve VAPID public key for browser PushManager subscription
-router.get('/push/public-key', (req, res) => {
-  const publicKey = getVapidPublicKey();
-  res.json({ publicKey });
-});
 
 // POST /api/push/subscribe - Store Web Push subscription for authenticated user
 router.post('/push/subscribe', checkDB, async (req, res) => {

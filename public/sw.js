@@ -83,19 +83,26 @@ self.addEventListener('push', (event) => {
     try {
       payload = event.data.json()
     } catch {
-      payload = { title: 'Task Reminder', body: event.data.text() }
+      payload = { title: 'DayLedger', body: event.data.text() }
     }
 
-    const title = payload.title || 'DayLedger Task Reminder'
+    const isIncomingCall = payload.data?.type === 'call_incoming' || payload.data?.type === 'call' || payload.type === 'call_incoming'
+    const isMissedCall = payload.data?.type === 'call_missed' || payload.type === 'call_missed'
+
+    const defaultTitle = isIncomingCall ? 'Incoming Audio Call' : isMissedCall ? 'Missed Audio Call' : 'DayLedger Task Reminder'
+    const defaultBody = isIncomingCall ? 'A friend is calling you on DayLedger...' : isMissedCall ? 'You missed an audio call on DayLedger.' : 'You have an upcoming task deadline.'
+
+    const title = payload.title || defaultTitle
     const notificationOptions = {
-      body: payload.body || 'You have an upcoming task deadline.',
+      body: payload.body || defaultBody,
       icon: '/icons/icon-192.png',
       badge: '/favicon.svg',
-      tag: payload.tag || `dayledger-task-${payload.taskId || Date.now()}`,
+      tag: payload.tag || (isIncomingCall ? `call-${payload.data?.callId || Date.now()}` : `dayledger-task-${payload.taskId || Date.now()}`),
       data: payload,
-      requireInteraction: true,
-      actions: payload.actions || [],
-      vibrate: [200, 100, 200],
+      requireInteraction: isIncomingCall || payload.requireInteraction !== false,
+      renotify: true,
+      actions: payload.actions || (isIncomingCall ? [{ action: 'open_call', title: 'Open Call' }] : []),
+      vibrate: isIncomingCall ? [500, 250, 500, 250, 500, 250, 500] : [200, 100, 200],
     }
 
     event.waitUntil(self.registration.showNotification(title, notificationOptions))
@@ -109,7 +116,7 @@ self.addEventListener('notificationclick', (event) => {
 
   const data = event.notification.data || {}
   const action = event.action
-  const taskId = data.taskId
+  const taskId = data.taskId || data.data?.taskId
 
   event.waitUntil(
     (async () => {
@@ -118,6 +125,48 @@ self.addEventListener('notificationclick', (event) => {
         type: 'window',
         includeUncontrolled: true,
       })
+
+      // Check if this is an incoming or missed call notification
+      const isCall =
+        action === 'open_call' ||
+        data.data?.type === 'call_incoming' ||
+        data.data?.type === 'call' ||
+        data.data?.type === 'call_missed' ||
+        data.type === 'call_incoming' ||
+        data.type === 'call' ||
+        data.type === 'call_missed'
+
+      if (isCall) {
+        const callId = data.data?.callId || data.callId || ''
+        const callerName = data.data?.callerName || data.callerName || ''
+        const callerId = data.data?.callerId || data.callerId || ''
+        const callerAvatar = data.data?.callerAvatar || data.callerAvatar || ''
+        const targetUrl = data.data?.url || data.url || (callId ? `/?callId=${encodeURIComponent(callId)}&callerName=${encodeURIComponent(callerName)}` : '/?tab=friends')
+
+        if (clientList.length > 0) {
+          // Focus existing client and notify app of call click
+          for (const client of clientList) {
+            client.postMessage({
+              type: 'CALL_NOTIFICATION_CLICK',
+              callId,
+              callerId,
+              callerName,
+              callerAvatar,
+            })
+          }
+          const client = clientList[0]
+          if ('focus' in client) {
+            await client.focus()
+          }
+          return
+        }
+
+        // No open window, open a new window pointing to the call URL
+        if (self.clients.openWindow) {
+          return self.clients.openWindow(targetUrl)
+        }
+        return
+      }
 
       // If user clicked 'mark_complete'
       if (action === 'mark_complete' && taskId) {

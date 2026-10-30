@@ -645,6 +645,16 @@ export async function apiRecordSessionExpired(email?: string, name?: string, use
 
 // ==================== WEB PUSH NOTIFICATIONS ====================
 
+export async function apiGetPushStatus(): Promise<{ pushConfigured: boolean; hasPublicKey: boolean }> {
+  try {
+    const res = await fetch(`${API_BASE}/push/status`);
+    if (!res.ok) return { pushConfigured: false, hasPublicKey: false };
+    return await res.json();
+  } catch {
+    return { pushConfigured: false, hasPublicKey: false };
+  }
+}
+
 export async function getPushPublicKey(): Promise<string | null> {
   try {
     const res = await fetch(`${API_BASE}/push/public-key`, {

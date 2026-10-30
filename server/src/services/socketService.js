@@ -4,6 +4,8 @@ import crypto from 'crypto';
 import { JWT_SECRET } from '../middleware/auth.js';
 import { FriendshipModel, getPairKey } from '../models/Friendship.js';
 import { UserModel } from '../models/User.js';
+import { PushSubscriptionModel } from '../models/PushSubscription.js';
+import { DeviceTokenModel } from '../models/DeviceToken.js';
 import { sendPushToUser } from './pushService.js';
 import { sendFcmIncomingCall, sendFcmMissedCall, sendFcmCallDismiss } from './fcmService.js';
 
@@ -163,6 +165,45 @@ export function initSocketServer(httpServer, allowedOrigins = []) {
     // Join personal room for 1-to-1 routing
     socket.join(`user:${userId}`);
 
+    // Sync any ringing call waiting for newly connected user (e.g. from lock screen notification tap)
+    for (const [, call] of activeCalls.entries()) {
+      if (call.recipientId === userId && call.status === 'ringing') {
+        socket.emit('call:incoming', {
+          callId: call.callId,
+          callerId: call.callerId,
+          callerName: call.callerName,
+          callerAvatar: call.callerAvatar,
+        });
+        break;
+      }
+    }
+
+    /**
+     * Query active call state (used on app resume, reconnect, or notification click)
+     */
+    socket.on('call:query_active', ({ callId } = {}) => {
+      let call = null;
+      if (callId && activeCalls.has(callId)) {
+        call = activeCalls.get(callId);
+      } else {
+        call = findActiveCallForUser(userId);
+      }
+      if (call && (call.callerId === userId || call.recipientId === userId) && call.status !== 'ended') {
+        socket.emit('call:active_state', {
+          callId: call.callId,
+          status: call.status,
+          callerId: call.callerId,
+          callerName: call.callerName,
+          callerAvatar: call.callerAvatar,
+          recipientId: call.recipientId,
+          isCaller: call.callerId === userId,
+          startedAt: call.startedAt,
+        });
+      } else {
+        socket.emit('call:active_state', null);
+      }
+    });
+
     // ==================== CALL SIGNALING (WebRTC) ====================
 
     /**
@@ -214,12 +255,26 @@ export function initSocketServer(httpServer, allowedOrigins = []) {
           });
         }
 
-        // 4. Check if recipient has an active socket connection
+        // 4. Check reachability: active socket connection, Web Push subscription, or Android FCM device
         const recipientRoom = ioInstance.sockets.adapter.rooms.get(`user:${recipientId}`);
         const isOnline = Boolean(recipientRoom && recipientRoom.size > 0);
 
-        if (!isOnline) {
-          // Send Web Push notification to browser tabs
+        let hasPushSubscriptions = false;
+        try {
+          const pushCount = await PushSubscriptionModel.countDocuments({ userId: recipientId });
+          hasPushSubscriptions = pushCount > 0;
+        } catch {}
+
+        let hasFcmDevices = false;
+        try {
+          const fcmCount = await DeviceTokenModel.countDocuments({ userId: recipientId });
+          hasFcmDevices = fcmCount > 0;
+        } catch {}
+
+        const isReachable = isOnline || hasPushSubscriptions || hasFcmDevices;
+
+        if (!isReachable) {
+          // Send Web Push notification to browser tabs if any exist
           sendPushToUser(recipientId, {
             title: 'Missed Audio Call',
             body: `${socket.userName || 'A friend'} tried calling you on DayLedger`,
@@ -233,7 +288,7 @@ export function initSocketServer(httpServer, allowedOrigins = []) {
             },
           }).catch(() => {});
 
-          // Send native FCM missed call notification to Android devices
+          // Send native FCM missed call notification to Android devices if any exist
           sendFcmMissedCall(recipientId, {
             callId,
             callerId: userId,
@@ -253,32 +308,38 @@ export function initSocketServer(httpServer, allowedOrigins = []) {
         activeCalls.set(callId, {
           callId,
           callerId: userId,
+          callerName: socket.userName,
+          callerAvatar: socket.userAvatar,
           recipientId,
           status: 'ringing',
           startedAt: Date.now(),
           declineToken,
         });
 
-        // 6. Forward incoming call notification to recipient with authenticated caller identity
-        ioInstance.to(`user:${recipientId}`).emit('call:incoming', {
-          callId,
-          callerId: userId,
-          callerName: socket.userName,
-          callerAvatar: socket.userAvatar,
-        });
-
-        // 7. Send background Web Push notification to browser subscriptions
-        sendPushToUser(recipientId, {
-          title: 'Incoming Audio Call',
-          body: `${socket.userName || 'A friend'} is calling you on DayLedger`,
-          tag: `call-${callId}`,
-          data: {
-            type: 'call',
+        // 6. Forward incoming call notification to recipient if socket is connected
+        if (isOnline) {
+          ioInstance.to(`user:${recipientId}`).emit('call:incoming', {
             callId,
             callerId: userId,
             callerName: socket.userName,
-            url: '/?tab=friends',
+            callerAvatar: socket.userAvatar,
+          });
+        }
+
+        // 7. Send background Web Push notification to browser / iPhone PWA subscriptions
+        sendPushToUser(recipientId, {
+          title: 'Incoming Audio Call',
+          body: `${socket.userName || 'A friend'} is calling you on DayLedger...`,
+          tag: `call-${callId}`,
+          data: {
+            type: 'call_incoming',
+            callId,
+            callerId: userId,
+            callerName: socket.userName,
+            callerAvatar: socket.userAvatar,
+            url: `/?callId=${encodeURIComponent(callId)}&callerName=${encodeURIComponent(socket.userName || 'A friend')}`,
           },
+          actions: [{ action: 'open_call', title: 'Open Call' }],
         }).catch((err) => console.error('[Calls] Failed to send background push notification:', err.message));
 
         // 8. Send high-priority native FCM notification to Android devices so device rings when locked/backgrounded
@@ -477,14 +538,24 @@ export function initSocketServer(httpServer, allowedOrigins = []) {
       // Clean up any call where this user was a participant
       for (const [callId, call] of activeCalls.entries()) {
         if (call.callerId === userId) {
-          if (call.status === 'ringing') {
-            sendFcmCallDismiss(call.recipientId, { callId }).catch(() => {});
+          const callerRoom = ioInstance.sockets.adapter.rooms.get(`user:${userId}`);
+          if (!callerRoom || callerRoom.size === 0) {
+            if (call.status === 'ringing') {
+              sendFcmCallDismiss(call.recipientId, { callId }).catch(() => {});
+            }
+            ioInstance.to(`user:${call.recipientId}`).emit('call:ended', { callId, reason: 'disconnected' });
+            activeCalls.delete(callId);
           }
-          ioInstance.to(`user:${call.recipientId}`).emit('call:ended', { callId, reason: 'disconnected' });
-          activeCalls.delete(callId);
         } else if (call.recipientId === userId) {
-          ioInstance.to(`user:${call.callerId}`).emit('call:ended', { callId, reason: 'disconnected' });
-          activeCalls.delete(callId);
+          const recipientRoom = ioInstance.sockets.adapter.rooms.get(`user:${userId}`);
+          if (!recipientRoom || recipientRoom.size === 0) {
+            // Only end call on recipient disconnect if the call was already connected.
+            // If still ringing, recipient may be connecting from a lock-screen notification.
+            if (call.status === 'connected') {
+              ioInstance.to(`user:${call.callerId}`).emit('call:ended', { callId, reason: 'disconnected' });
+              activeCalls.delete(callId);
+            }
+          }
         }
       }
     });
@@ -504,6 +575,19 @@ export function initSocketServer(httpServer, allowedOrigins = []) {
           ioInstance.to(`user:${call.recipientId}`).emit('call:ended', { callId, reason: 'timeout' });
         }
         sendFcmCallDismiss(call.recipientId, { callId }).catch(() => {});
+        // Send missed call push notification to recipient
+        sendPushToUser(call.recipientId, {
+          title: 'Missed Audio Call',
+          body: `${call.callerName || 'A friend'} tried calling you on DayLedger`,
+          tag: `call-${callId}`,
+          data: {
+            type: 'call_missed',
+            callId,
+            callerId: call.callerId,
+            callerName: call.callerName,
+            url: '/?tab=friends',
+          },
+        }).catch(() => {});
         activeCalls.delete(callId);
       }
     }

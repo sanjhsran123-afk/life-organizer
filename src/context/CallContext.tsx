@@ -23,6 +23,9 @@ interface CallContextType {
   isPermissionPermanentlyDenied: boolean;
   openAppSettings: () => Promise<void>;
   openCallingSetup: (targetFriend?: { id: string; name: string; avatar: string }) => void;
+  isCallMinimized: boolean;
+  minimizeCall: () => void;
+  maximizeCall: () => void;
 }
 
 const CallContext = createContext<CallContextType | undefined>(undefined);
@@ -39,6 +42,13 @@ class SoundSynthesizer {
         this.ctx = new AudioCtx();
       }
     }
+    if (this.ctx && this.ctx.state === 'suspended') {
+      this.ctx.resume().catch(() => {});
+    }
+  }
+
+  unlock() {
+    this.initCtx();
     if (this.ctx && this.ctx.state === 'suspended') {
       this.ctx.resume().catch(() => {});
     }
@@ -135,6 +145,10 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [activeCall, setActiveCall] = useState<ActiveCall | null>(null);
   const [callError, setCallError] = useState<string | null>(null);
   const [isPermissionPermanentlyDenied, setIsPermissionPermanentlyDenied] = useState<boolean>(false);
+  const [isCallMinimized, setIsCallMinimized] = useState<boolean>(false);
+
+  const minimizeCall = useCallback(() => setIsCallMinimized(true), []);
+  const maximizeCall = useCallback(() => setIsCallMinimized(false), []);
 
   // Calling setup modal states
   const [isSetupOpen, setIsSetupOpen] = useState<boolean>(false);
@@ -148,11 +162,13 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const timerRef = useRef<any>(null);
   const pendingIceCandidates = useRef<RTCIceCandidateInit[]>([]);
 
-  // Hidden audio element for remote stream playback
+  // Hidden audio element for remote stream playback with iOS Safari compatibility
   useEffect(() => {
     const audio = document.createElement('audio');
     audio.autoplay = true;
     (audio as any).playsInline = true;
+    audio.setAttribute('playsinline', 'true');
+    audio.setAttribute('webkit-playsinline', 'true');
     remoteAudioRef.current = audio;
     document.body.appendChild(audio);
 
@@ -164,6 +180,7 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Cleanup peer connection and media streams
   const cleanupMedia = useCallback(() => {
     soundSynth.stop();
+    setIsCallMinimized(false);
 
     if (timerRef.current) {
       clearInterval(timerRef.current);
@@ -412,6 +429,36 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     };
 
+    // Active call state sync (for app resume, reconnect, or notification click)
+    const handleActiveState = (callData: any) => {
+      if (!callData) {
+        if (activeCall?.status === 'incoming_ringing') {
+          soundSynth.stop();
+          setActiveCall(null);
+          setCallError('Call has ended or timed out.');
+        }
+        return;
+      }
+
+      if (callData.status === 'ringing' && !callData.isCaller) {
+        soundSynth.playIncomingRing();
+        setActiveCall((prev) => ({
+          callId: callData.callId,
+          peerId: callData.callerId,
+          peerName: callData.callerName,
+          peerAvatar: callData.callerAvatar || '',
+          isIncoming: true,
+          isMuted: prev?.isMuted || false,
+          status: 'incoming_ringing',
+          duration: 0,
+        }));
+      } else if (callData.status === 'ended') {
+        soundSynth.playEndTone();
+        cleanupMedia();
+        setActiveCall(null);
+      }
+    };
+
     socket.on('call:incoming', handleIncomingCall);
     socket.on('call:accepted', handleCallAccepted);
     socket.on('call:declined', handleCallDeclined);
@@ -419,6 +466,7 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
     socket.on('call:unavailable', handleCallUnavailable);
     socket.on('call:error', handleCallError);
     socket.on('call:signal', handleCallSignal);
+    socket.on('call:active_state', handleActiveState);
 
     return () => {
       socket.off('call:incoming', handleIncomingCall);
@@ -428,8 +476,79 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
       socket.off('call:unavailable', handleCallUnavailable);
       socket.off('call:error', handleCallError);
       socket.off('call:signal', handleCallSignal);
+      socket.off('call:active_state', handleActiveState);
     };
   }, [activeCall, cleanupMedia]);
+
+  // Listen for Web Push notification clicks from Service Worker (iPhone PWA / Web Lock Screen)
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
+
+    const handleSwMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'CALL_NOTIFICATION_CLICK' && event.data.callId) {
+        const { callId, callerId, callerName, callerAvatar } = event.data;
+        if (!activeCall || activeCall.callId !== callId) {
+          const socket = getSocket();
+          if (socket) {
+            socket.emit('call:query_active', { callId });
+          }
+          soundSynth.unlock();
+          soundSynth.playIncomingRing();
+          setActiveCall({
+            callId,
+            peerId: callerId || '',
+            peerName: callerName || 'A friend',
+            peerAvatar: callerAvatar || '',
+            isIncoming: true,
+            isMuted: false,
+            status: 'incoming_ringing',
+            duration: 0,
+          });
+          setIsCallMinimized(false);
+        }
+      }
+    };
+
+    navigator.serviceWorker.addEventListener('message', handleSwMessage);
+    return () => {
+      navigator.serviceWorker.removeEventListener('message', handleSwMessage);
+    };
+  }, [activeCall]);
+
+  // Check URL search parameters for direct call link / notification launch
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlCallId = urlParams.get('callId');
+    const urlCallerName = urlParams.get('callerName');
+    const urlCallerId = urlParams.get('callerId');
+
+    if (urlCallId) {
+      // Remove callId from address bar without reloading
+      const cleanUrl = window.location.pathname + window.location.hash;
+      window.history.replaceState({}, document.title, cleanUrl);
+
+      const token = getAuthToken();
+      if (token) {
+        const socket = connectSocket(token);
+        socket.emit('call:query_active', { callId: urlCallId });
+      }
+
+      soundSynth.unlock();
+      soundSynth.playIncomingRing();
+      setActiveCall({
+        callId: urlCallId,
+        peerId: urlCallerId || '',
+        peerName: urlCallerName || 'A friend',
+        peerAvatar: '',
+        isIncoming: true,
+        isMuted: false,
+        status: 'incoming_ringing',
+        duration: 0,
+      });
+      setIsCallMinimized(false);
+    }
+  }, []);
 
   // Core call initiator once permissions and setup are verified
   const executeCall = async (peerId: string, peerName: string, peerAvatar: string) => {
@@ -474,6 +593,8 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Initiate Outgoing Call - Gates on calling setup
   const startCall = async (peerId: string, peerName: string, peerAvatar: string) => {
+    soundSynth.unlock();
+    remoteAudioRef.current?.play().catch(() => {});
     setCallError(null);
     setIsPermissionPermanentlyDenied(false);
 
@@ -500,6 +621,8 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Accept Incoming Call - Recipient must choose to answer
   const acceptCall = async () => {
     if (!activeCall) return;
+    soundSynth.unlock();
+    remoteAudioRef.current?.play().catch(() => {});
     soundSynth.stop();
     NativeCall.dismissActiveCall({ callId: activeCall.callId }).catch(() => {});
 
@@ -676,6 +799,7 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const openCallingSetup = (targetFriend?: { id: string; name: string; avatar: string }) => {
+    soundSynth.unlock();
     if (targetFriend) setSetupTarget(targetFriend);
     setSetupForceDenied(false);
     setSetupDeniedMessage('');
@@ -709,6 +833,9 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isPermissionPermanentlyDenied,
         openAppSettings: openDayLedgerAppSettings,
         openCallingSetup,
+        isCallMinimized,
+        minimizeCall,
+        maximizeCall,
       }}
     >
       {children}
